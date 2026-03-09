@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { trackEvent } from "@/lib/tracking";
 
 /* ─── Animated Section Wrapper ─── */
 function Section({
@@ -265,6 +266,7 @@ function LeadModal({
     }
     setLoading(false);
     setSubmitted(true);
+    trackEvent("lead_submit", { plan, email });
     // Redireciona para signup após 3 segundos
     setTimeout(() => {
       window.location.href = `/signup?plan=${encodeURIComponent(plan)}&email=${encodeURIComponent(email)}`;
@@ -435,9 +437,15 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Track landing page view (uma vez por sessão)
+  useEffect(() => {
+    trackEvent("landing_view");
+  }, []);
+
   function openModal(plan = "profissional") {
     setModalPlan(plan);
     setModalOpen(true);
+    trackEvent("modal_open", { plan });
   }
 
   return (
