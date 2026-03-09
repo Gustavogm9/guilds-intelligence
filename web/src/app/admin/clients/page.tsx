@@ -54,6 +54,26 @@ export default async function AdminClientsPage({
 
     const clients = (rawClients as unknown as ClientRow[]) || [];
 
+    // Buscar eventos de lead_submit para calcular "temperatura" (submissões repetidas)
+    let heatMap: Record<string, number> = {};
+    try {
+        const { data: leadEvents } = await supabase
+            .from("funnel_events")
+            .select("metadata")
+            .eq("event_type", "lead_submit");
+
+        if (leadEvents) {
+            leadEvents.forEach((ev: { metadata: Record<string, unknown> }) => {
+                const email = (ev.metadata?.email as string) || "";
+                if (email) {
+                    heatMap[email] = (heatMap[email] || 0) + 1;
+                }
+            });
+        }
+    } catch {
+        // Tabela pode não existir ainda
+    }
+
     // Contadores do funil
     const counts = { lead: 0, onboarding_pendente: 0, ativo: 0, inativo: 0 };
     clients.forEach((c) => {
@@ -162,6 +182,7 @@ export default async function AdminClientsPage({
                                 <th className="p-4 font-medium text-muted-foreground">WhatsApp</th>
                                 <th className="p-4 font-medium text-muted-foreground">Plano</th>
                                 <th className="p-4 font-medium text-muted-foreground">Funil</th>
+                                <th className="p-4 font-medium text-muted-foreground">Interesse</th>
                                 <th className="p-4 font-medium text-muted-foreground">Criado em</th>
                             </tr>
                         </thead>
@@ -204,6 +225,15 @@ export default async function AdminClientsPage({
                                                     {funnel.label}
                                                 </Badge>
                                             </td>
+                                            <td className="p-4">
+                                                {(() => {
+                                                    const heat = heatMap[client.contact_email] || 0;
+                                                    if (heat >= 3) return <span title={`${heat} submissões`} className="text-sm">🔥🔥🔥 <span className="text-xs text-orange-600 font-medium">{heat}x</span></span>;
+                                                    if (heat === 2) return <span title="2 submissões" className="text-sm">🔥🔥 <span className="text-xs text-orange-500">{heat}x</span></span>;
+                                                    if (heat === 1) return <span title="1 submissão" className="text-sm text-muted-foreground">1x</span>;
+                                                    return <span className="text-muted-foreground">—</span>;
+                                                })()}
+                                            </td>
                                             <td className="p-4 text-muted-foreground text-xs">
                                                 {new Date(client.created_at).toLocaleDateString("pt-BR")}
                                             </td>
@@ -212,7 +242,7 @@ export default async function AdminClientsPage({
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
                                         {clients.length === 0
                                             ? "Nenhum cliente ou lead cadastrado ainda."
                                             : "Nenhum resultado para os filtros aplicados."}
