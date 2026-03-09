@@ -246,6 +246,8 @@ function LeadModal({
     setLoading(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const email = formData.get("lead-email") as string;
+    const plan = formData.get("lead-plan") as string || currentPlan;
     try {
       await fetch("/api/leads", {
         method: "POST",
@@ -253,9 +255,9 @@ function LeadModal({
         body: JSON.stringify({
           name: formData.get("lead-name"),
           company: formData.get("lead-company"),
-          email: formData.get("lead-email"),
+          email,
           phone: formData.get("lead-phone"),
-          plan: formData.get("lead-plan"),
+          plan,
         }),
       });
     } catch {
@@ -263,6 +265,15 @@ function LeadModal({
     }
     setLoading(false);
     setSubmitted(true);
+    // Redireciona para signup após 3 segundos
+    setTimeout(() => {
+      window.location.href = `/signup?plan=${encodeURIComponent(plan)}&email=${encodeURIComponent(email)}`;
+    }, 3000);
+  }
+
+  function goToSignup() {
+    const plan = currentPlan;
+    window.location.href = `/signup?plan=${encodeURIComponent(plan)}`;
   }
 
   return (
@@ -311,14 +322,13 @@ function LeadModal({
                 >
                   <CheckCircle2 className="h-16 w-16 text-green-500" />
                 </motion.div>
-                <h3 className="text-2xl font-bold">Dados enviados! 🎉</h3>
+                <h3 className="text-2xl font-bold">Dados recebidos! 🎉</h3>
                 <p className="text-muted-foreground text-center max-w-sm">
-                  Vamos configurar seu acesso em até 24h.
-                  Você receberá um email para completar seu perfil e receber o
-                  primeiro relatório gratuitamente.
+                  Seus dados foram registrados com sucesso.
+                  Vamos redirecionar você para criar sua conta em instantes...
                 </p>
-                <Button onClick={onClose} variant="outline" className="mt-2">
-                  Fechar
+                <Button onClick={goToSignup} className="mt-2">
+                  Criar minha conta agora →
                 </Button>
               </motion.div>
             ) : (
