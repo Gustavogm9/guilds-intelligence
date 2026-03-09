@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatório Grátis — Guilds Intelligence Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background blobs */
+    .blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+    .blob1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%); top: -200px; right: -150px; }
+    .blob2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%); bottom: -100px; left: -100px; }
+
+    /* Card */
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      padding: 52px 48px;
+      max-width: 520px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Logo */
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+    .logo-icon { width: 36px; height: 36px; background: #6366f1; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 20px; height: 20px; fill: white; }
+    .logo-name { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.8); }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+
+    /* Headline */
+    h1 {
+      font-size: 38px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Subline */
+    .subline {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    /* Form */
+    .form { display: flex; flex-direction: column; gap: 14px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .field input::placeholder, .field textarea::placeholder { color: rgba(255,255,255,0.25); }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: rgba(99,102,241,0.6);
+      background: rgba(255,255,255,0.09);
+    }
+    .field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b7280' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .field select option { background: #1e293b; color: #fff; }
+    .field textarea { resize: none; }
+
+    /* Two cols */
+    .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* Submit */
+    .submit-btn {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 18px 24px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 6px;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: -0.3px;
+    }
+    .submit-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .submit-btn svg { width: 18px; height: 18px; }
+
+    /* Trust line */
+    .trust {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+    }
+    .trust-item svg { width: 14px; height: 14px; }
+
+    /* Success state */
+    .success-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 0;
+    }
+    .success-state.visible { display: flex; }
+    .form-content.hidden { display: none; }
+    .success-icon { font-size: 56px; margin-bottom: 20px; }
+    .success-title { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -1px; margin-bottom: 12px; }
+    .success-sub { font-size: 15px; color: rgba(255,255,255,0.5); line-height: 1.6; max-width: 360px; }
+
+    /* Bottom note */
+    .bottom-note {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.2);
+      margin-top: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 540px) {
+      .card { padding: 36px 24px; }
+      h1 { font-size: 30px; }
+      .two-cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+
+<div class="card">
+  <!-- Logo -->
+  <div class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+    <span class="logo-name">Guilds Intelligence Engine</span>
+  </div>
+
+  <!-- Form content -->
+  <div class="form-content" id="formContent">
+    <div class="badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#34d399"><path d="M5 13l4 4L19 7"/></svg>
+      Seu primeiro relatório é grátis
+    </div>
+
+    <h1>Mande seu setor.<br/>A gente <span>cuida do resto.</span></h1>
+
+    <p class="subline">Preencha abaixo. Seu relatório personalizado chega no seu email em até 48 horas. Sem cartão. Sem compromisso.</p>
+
+    <form class="form" id="trialForm" onsubmit="handleSubmit(event)">
+      <div class="two-cols">
+        <div class="field">
+          <label>Seu nome</label>
+          <input type="text" placeholder="João Silva" required/>
+        </div>
+        <div class="field">
+          <label>Email profissional</label>
+          <input type="email" placeholder="joao@empresa.com.br" required/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Nome da empresa</label>
+        <input type="text" placeholder="Ex: Vetta Tech" required/>
+      </div>
+
+      <div class="field">
+        <label>Setor / mercado que você atua</label>
+        <select required>
+          <option value="" disabled selected>Selecione o seu setor</option>
+          <option>Tech / SaaS / Startups</option>
+          <option>Saúde / Healthtech</option>
+          <option>Varejo / E-commerce / D2C</option>
+          <option>Construção Civil / Proptech</option>
+          <option>Serviços Profissionais / Consultoria</option>
+          <option>Educação / Edtech</option>
+          <option>Financeiro / Fintech</option>
+          <option>Indústria / Manufatura</option>
+          <option>Agro / Agritech</option>
+          <option>Outro</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Seus 3 maiores concorrentes (um por linha)</label>
+        <textarea rows="3" placeholder="Ex:&#10;Empresa Alpha&#10;Empresa Beta&#10;Empresa Gamma"></textarea>
+      </div>
+
+      <div class="field">
+        <label>O que você mais quer saber sobre o seu mercado agora? (opcional)</label>
+        <textarea rows="2" placeholder="Ex: movimentos de precificação, tendências de produto, regulação…"></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        Quero meu relatório grátis
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </button>
+    </form>
+
+    <div class="trust">
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Sem cartão necessário
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Relatório em até 48h
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        Cancele quando quiser
+      </div>
+    </div>
+  </div>
+
+  <!-- Success state -->
+  <div class="success-state" id="successState">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Pedido recebido!</div>
+    <p class="success-sub">Seu relatório personalizado está sendo preparado. Você receberá um email em até 48 horas com tudo pronto para ler.</p>
+    <p class="success-sub" style="margin-top:16px; font-size:13px; color:rgba(255,255,255,0.3);">Enquanto isso, siga a Guilds no Instagram para ver conteúdo sobre inteligência de mercado.</p>
+  </div>
+</div>
+
+<p class="bottom-note">guilds.com.br · © 2026 Guilds. Todos os direitos reservados.</p>
+
+<script>
+  function handleSubmit(e) {
+    e.preventDefault();
+    // Aqui você integra com seu backend / Supabase / Typeform / etc.
+    document.getElementById('formContent').classList.add('hidden');
+    document.getElementById('successState').classList.add('visible');
+  }
+</script>
+
+</body>
+</html>

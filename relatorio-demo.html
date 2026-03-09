@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatório de Inteligência — Vetta Tech · Fevereiro 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --indigo: #6366f1;
+      --indigo-light: #818cf8;
+      --purple: #a855f7;
+      --dark: #0f172a;
+      --dark2: #1e293b;
+      --dark3: #334155;
+      --slate: rgba(255,255,255,0.45);
+      --slate-dim: rgba(255,255,255,0.25);
+      --border: rgba(255,255,255,0.07);
+      --border-soft: rgba(255,255,255,0.04);
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Global blobs */
+    .page-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+    .page-blob1 { width: 700px; height: 700px; background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); top: -200px; right: -150px; }
+    .page-blob2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(168,85,247,0.09) 0%, transparent 70%); bottom: 10%; left: -100px; }
+
+    /* Wrapper */
+    .page-wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 32px 64px; }
+
+    /* ---- DEMO BANNER ---- */
+    .demo-banner {
+      background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.2));
+      border-bottom: 1px solid rgba(99,102,241,0.3);
+      padding: 13px 32px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+    .demo-banner strong { color: #fff; }
+    .demo-banner a { color: var(--indigo-light); text-decoration: none; font-weight: 700; border-bottom: 1px solid rgba(129,140,248,0.4); }
+
+    /* ---- HEADER ---- */
+    .report-header { padding: 52px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 48px; }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 14px; }
+    .guilds-logo { display: flex; align-items: center; gap: 10px; }
+    .guilds-logo-icon { width: 36px; height: 36px; background: var(--indigo); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .guilds-logo-icon svg { width: 20px; height: 20px; fill: white; }
+    .guilds-logo-name { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.8); }
+    .guilds-logo-sub { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 500; }
+    .report-badge {
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      color: var(--indigo-light);
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; padding: 6px 14px; border-radius: 999px;
+    }
+    .header-company-tag { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+    .header-title { font-size: 42px; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 8px; }
+    .header-title span { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .header-meta { display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap; }
+    .header-meta-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.35); }
+    .header-meta-item strong { color: rgba(255,255,255,0.6); font-weight: 600; }
+    .header-meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--indigo-light); }
+
+    /* ---- SECTION WRAPPER ---- */
+    .section { margin-bottom: 56px; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .section-tag {
+      font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--indigo-light); background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.2); padding: 4px 12px; border-radius: 999px;
+    }
+    .section-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 0 0 56px; }
+
+    /* ---- TOP INSIGHTS ---- */
+    .insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .insight-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .insight-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .insight-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .insight-card.amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+    .insight-card.red::before   { background: linear-gradient(90deg, var(--red),   transparent); }
+    .insight-card:hover { border-color: rgba(255,255,255,0.12); }
+    .insight-icon { font-size: 26px; margin-bottom: 12px; }
+    .insight-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .insight-card.green .insight-label { color: var(--green); }
+    .insight-card.amber .insight-label { color: var(--amber); }
+    .insight-card.red   .insight-label { color: var(--red); }
+    .insight-text { font-size: 14px; font-weight: 700; color: #fff; line-height: 1.4; }
+    .insight-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px; line-height: 1.5; }
+
+    /* ---- MARKET MOVEMENTS ---- */
+    .movements-list { display: flex; flex-direction: column; gap: 14px; }
+    .movement-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px 24px;
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .movement-type {
+      flex-shrink: 0; padding: 4px 10px; border-radius: 999px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; white-space: nowrap; margin-top: 2px;
+    }
+    .movement-type.competitor  { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+    .movement-type.funding     { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+    .movement-type.regulatory  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .movement-type.trend       { background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); }
+    .movement-body h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .movement-body p  { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+    .movement-relevance {
+      font-size: 12px; color: var(--indigo-light); font-weight: 600;
+      margin-top: 10px; display: flex; align-items: flex-start; gap: 6px;
+      background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 8px; padding: 8px 12px; line-height: 1.5;
+    }
+    .movement-relevance::before { content: '→'; flex-shrink: 0; }
+
+    /* ---- OPPORTUNITIES ---- */
+    .opps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .opp-card {
+      background: rgba(16,185,129,0.06);
+      border: 1px solid rgba(16,185,129,0.18);
+      border-radius: 14px; padding: 22px;
+    }
+    .opp-icon { font-size: 24px; margin-bottom: 10px; }
+    .opp-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .opp-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+    .opp-action {
+      margin-top: 12px; font-size: 12px; font-weight: 600;
+      color: #34d399; background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.2);
+      padding: 6px 12px; border-radius: 999px; display: inline-block;
+    }
+
+    /* ---- ALERTS ---- */
+    .alerts-list { display: flex; flex-direction: column; gap: 12px; }
+    .alert-item {
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.18);
+      border-radius: 12px; padding: 18px 20px;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .alert-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .alert-body h4 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .alert-body p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+    /* ---- ACTIONS ---- */
+    .actions-list { display: flex; flex-direction: column; gap: 12px; }
+    .action-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 24px;
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .action-num {
+      width: 32px; height: 32px; background: var(--indigo); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 14px; font-weight: 800; flex-shrink: 0;
+    }
+    .action-body h4 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .action-body p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+    .action-priority { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+    .action-priority.alta  { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .action-priority.media { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .action-priority.baixa { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+
+    /* ---- FOOTER ---- */
+    .report-footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0 0;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    }
+    .footer-left { display: flex; align-items: center; gap: 10px; }
+    .footer-logo-icon { width: 26px; height: 26px; background: rgba(255,255,255,0.08); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .footer-logo-icon svg { width: 14px; height: 14px; fill: white; }
+    .footer-text { font-size: 12px; color: rgba(255,255,255,0.25); }
+    .footer-text strong { color: rgba(255,255,255,0.45); }
+    .footer-right { font-size: 12px; color: rgba(255,255,255,0.2); text-align: right; line-height: 1.6; }
+
+    /* ---- CTA FOOTER BANNER ---- */
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.15));
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 20px; padding: 32px 36px;
+      text-align: center; margin: 56px 0 0;
+    }
+    .cta-banner h3 { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .cta-banner p { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+    .cta-banner a {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff; font-size: 14px; font-weight: 700;
+      padding: 14px 28px; border-radius: 12px; text-decoration: none;
+    }
+
+    @media (max-width: 680px) {
+      .insights-grid { grid-template-columns: 1fr; }
+      .opps-grid { grid-template-columns: 1fr; }
+      .page-wrap { padding: 0 20px 48px; }
+      .header-title { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-blob page-blob1"></div>
+<div class="page-blob page-blob2"></div>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner">
+  📄 <strong>Exemplo de relatório real</strong> — empresa fictícia, estrutura e conteúdo idênticos ao que você recebe. &nbsp;<a href="guilds.com.br/intelligence">Quero o meu →</a>
+</div>
+
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="report-header">
+    <div class="header-top">
+      <div class="guilds-logo">
+        <div class="guilds-logo-icon"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+        <div>
+          <div class="guilds-logo-name">Guilds</div>
+          <div class="guilds-logo-sub">Intelligence Engine</div>
+        </div>
+      </div>
+      <div class="report-badge">Relatório Mensal</div>
+    </div>
+    <div class="header-company-tag">Vetta Tech · SaaS para Construtoras</div>
+    <h1 class="header-title">Inteligência de Mercado<br/><span>Fevereiro 2026</span></h1>
+    <div class="header-meta">
+      <div class="header-meta-item">
+        <div class="header-meta-dot"></div>
+        Setor: <strong>Construção Civil · PropTech</strong>
+      </div>
+      <div class="header-meta-item">
+        <div class="header-meta-dot"></div>
+        Concorrentes monitorados: <strong>Sienge, Obra Prima, Volare</strong>
+      </div>
+      <div class="header-meta-item">
+        <div class="header-meta-dot"></div>
+        Gerado em: <strong>01 Mar 2026</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: TOP INSIGHTS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">Destaque do Mês</span>
+      <span class="section-title">3 coisas que você precisa saber agora</span>
+    </div>
+    <div class="insights-grid">
+      <div class="insight-card green">
+        <div class="insight-icon">🚀</div>
+        <div class="insight-label">Oportunidade</div>
+        <div class="insight-text">MCMV faixa 3 liberou R$14bi — construtoras de médio porte estão contratando</div>
+        <div class="insight-sub">Janela de 60–90 dias antes da concorrência reagir. Alta demanda por gestão de obras em projetos residenciais verticais de 50–200 unidades.</div>
+      </div>
+      <div class="insight-card amber">
+        <div class="insight-icon">⚡</div>
+        <div class="insight-label">Movimento de Concorrente</div>
+        <div class="insight-text">Sienge lançou módulo de IA — focado em obras grandes, seu ICP ainda seguro</div>
+        <div class="insight-sub">O lançamento mira obras acima de 500 unidades. Mas o discurso de IA vai chegar ao mid-market em breve.</div>
+      </div>
+      <div class="insight-card red">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-label">Alerta</div>
+        <div class="insight-text">Nova norma ABNT entra em Abril — você pode ser o primeiro a oferecer conformidade</div>
+        <div class="insight-sub">Nenhum concorrente lançou solução específica ainda. Janela de posicionamento de autoridade aberta agora.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider"/>
+
+  <!-- SECTION: MOVIMENTOS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">Radar</span>
+      <span class="section-title">Movimentos do mercado em Fevereiro</span>
+    </div>
+    <div class="movements-list">
+      <div class="movement-item">
+        <span class="movement-type competitor">Concorrente</span>
+        <div class="movement-body">
+          <h4>Obra Prima levantou rodada Série A de R$22M</h4>
+          <p>Rodada liderada pela Canary com participação da Softbank Brasil. O anúncio menciona expansão para o mercado de reformas residenciais (B2C) — indicando saída do foco B2B de construtoras.</p>
+          <div class="movement-relevance">Para você: pressão de precificação pode aumentar no segmento deles, criando abertura no mid-market que você ocupa.</div>
+        </div>
+      </div>
+      <div class="movement-item">
+        <span class="movement-type funding">Aquisição</span>
+        <div class="movement-body">
+          <h4>Volare foi adquirida pelo grupo Totvs</h4>
+          <p>A integração vai levar 12–18 meses. Clientes Volare estão relatando incerteza sobre suporte e aumento de preços pós-aquisição — padrão histórico de integrações Totvs.</p>
+          <div class="movement-relevance">Para você: janela de migração. Clientes Volare de médio porte são seu perfil ideal e estão vulneráveis agora.</div>
+        </div>
+      </div>
+      <div class="movement-item">
+        <span class="movement-type regulatory">Regulatório</span>
+        <div class="movement-body">
+          <h4>CBIC publicou guia de transformação digital obrigatória para obras públicas acima de R$5M</h4>
+          <p>Resolução entra em vigor em Janeiro 2027, mas licitações começam agora. Construtoras precisarão demonstrar uso de software de gestão certificado.</p>
+          <div class="movement-relevance">Para você: oportunidade de criar landing específica para obras públicas, capturando demanda cedo.</div>
+        </div>
+      </div>
+      <div class="movement-item">
+        <span class="movement-type trend">Tendência</span>
+        <div class="movement-body">
+          <h4>ABRAINC: 67% das construtoras de médio porte ainda usam planilha como principal ferramenta</h4>
+          <p>Dado divulgado no congresso da ABRAINC e repercutiu no LinkedIn de gestores do setor. Argumento mais comum: "os sistemas são caros e difíceis de implementar."</p>
+          <div class="movement-relevance">Para você: validação do seu posicionamento. "Simples de implementar, sem treinamento" deve aparecer mais forte na sua comunicação.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider"/>
+
+  <!-- SECTION: OPORTUNIDADES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">Crescimento</span>
+      <span class="section-title">Oportunidades identificadas para Março</span>
+    </div>
+    <div class="opps-grid">
+      <div class="opp-card">
+        <div class="opp-icon">🎯</div>
+        <div class="opp-title">Clientes órfãos do Volare</div>
+        <div class="opp-desc">Com a aquisição pela Totvs, estimamos 200–400 empresas no perfil Vetta em modo de avaliação. O timing é agora — em 60 dias a janela fecha.</div>
+        <span class="opp-action">Campanha de migração com trial estendido</span>
+      </div>
+      <div class="opp-card">
+        <div class="opp-icon">🏗️</div>
+        <div class="opp-title">Demanda MCMV · Faixa 3</div>
+        <div class="opp-desc">Construtoras que venceram licitações do novo ciclo precisam iniciar obras até Junho. Muitas ainda não têm sistema de gestão implementado.</div>
+        <span class="opp-action">Parceria com escritórios de engenharia regionais</span>
+      </div>
+      <div class="opp-card">
+        <div class="opp-icon">📋</div>
+        <div class="opp-title">Conformidade ABNT · Checklist automatizado</div>
+        <div class="opp-desc">A NBR 16.280 rev. 2026 cria exigência de documentação de obras de reforma. Nenhum concorrente lançou solução específica ainda.</div>
+        <span class="opp-action">Feature flag rápida + comunicação de autoridade</span>
+      </div>
+      <div class="opp-card">
+        <div class="opp-icon">🤝</div>
+        <div class="opp-title">Canal via corretoras de seguro de obras</div>
+        <div class="opp-desc">Seguradoras como Tokio Marine e Porto estão exigindo software de gestão para seguros acima de R$2M. Canal de distribuição praticamente inexplorado.</div>
+        <span class="opp-action">Contato direto com gerentes de produto de seguros</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider"/>
+
+  <!-- SECTION: ALERTAS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">Atenção</span>
+      <span class="section-title">Riscos para monitorar</span>
+    </div>
+    <div class="alerts-list">
+      <div class="alert-item">
+        <div class="alert-icon">🔴</div>
+        <div class="alert-body">
+          <h4>Sienge lançando versão "Lite" — preço agressivo para mid-market</h4>
+          <p>Fontes no LinkedIn indicam versão simplificada voltada para construtoras até 300 unidades. Preço estimado: R$397/mês — concorrência direta com seu plano Crescimento.</p>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon">🟡</div>
+        <div class="alert-body">
+          <h4>Alta do dólar encarece infraestrutura cloud — impacto em margens SaaS</h4>
+          <p>AWS e Azure reajustaram preços em BRL (+8–12%). Para SaaS com custos em dólar e receita em real, isso pressiona margens. Avalie reajuste preventivo para novos clientes.</p>
+        </div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon">🟡</div>
+        <div class="alert-body">
+          <h4>Churn em SaaS de construção acelerou no Q1 2026</h4>
+          <p>Benchmarks do setor mostram churn médio subindo de 2,1% para 3,4%. Principal motivo: "não usamos todas as features". Simplificação de onboarding pode ser o antídoto.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider"/>
+
+  <!-- SECTION: AÇÕES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">Próximos Passos</span>
+      <span class="section-title">O que fazer em Março</span>
+    </div>
+    <div class="actions-list">
+      <div class="action-item">
+        <div class="action-num">1</div>
+        <div class="action-body">
+          <h4>Criar campanha de migração para clientes Volare</h4>
+          <p>Landing "Vindo do Volare?" com comparativo e trial de 60 dias. Distribuir via LinkedIn Ads (Diretor de Operações, Gerente de Obras) + email para base de leads.</p>
+          <span class="action-priority alta">Prioridade Alta · Esta semana</span>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">2</div>
+        <div class="action-body">
+          <h4>Publicar conteúdo de autoridade sobre a ABNT NBR 16.280</h4>
+          <p>Artigo técnico + post no LinkedIn explicando o que muda e como o Vetta já resolve. Posicionar como referência antes do Sienge ocupar esse espaço. Prazo: antes de 15/03.</p>
+          <span class="action-priority alta">Prioridade Alta · Próximas 2 semanas</span>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">3</div>
+        <div class="action-body">
+          <h4>Prospectar corretoras de seguro de obras como canal de distribuição</h4>
+          <p>Identificar os 10 maiores corretores de seguro de obras no Brasil. Propor parceria: Vetta como software recomendado para apólices acima de R$2M.</p>
+          <span class="action-priority media">Prioridade Média · Março</span>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-num">4</div>
+        <div class="action-body">
+          <h4>Revisar precificação antes do potencial lançamento Sienge Lite</h4>
+          <p>Se confirmado a R$397/mês, seu plano Crescimento (R$597) precisará de reposicionamento de valor claro. Preparar argumentário de diferenciação antes de precisar reagir.</p>
+          <span class="action-priority media">Prioridade Média · Março</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BANNER -->
+  <div class="cta-banner">
+    <h3>Este é o relatório que você vai receber todo mês.</h3>
+    <p>Personalizado para o seu setor, seus concorrentes e seus objetivos. Primeiro grátis, sem cartão.</p>
+    <a href="guilds.com.br/intelligence">
+      Quero o meu relatório
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+    </a>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="report-footer" style="margin-top:40px;">
+    <div class="footer-left">
+      <div class="footer-logo-icon"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+      <div class="footer-text"><strong>Guilds Intelligence Engine</strong> · guilds.com.br</div>
+    </div>
+    <div class="footer-right">
+      Relatório gerado em 01/03/2026 · Confidencial · Uso exclusivo Vetta Tech<br/>
+      Próximo relatório: 01/04/2026
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+</body>
+</html>

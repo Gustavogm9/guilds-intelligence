@@ -1,0 +1,22 @@
+# Guilds Client Intelligence Engine — Python Dependencies
+# Install: pip install -r requirements.txt
+
+# PDF Generation
+reportlab>=4.2.0
+
+# Image/Social Media Generation
+Pillow>=10.4.0
+
+# Text-to-Speech (Audio MP3)
+gTTS>=2.5.0
+
+# Supabase Integration (for SaaS platform)
+supabase>=2.9.0
+python-dotenv>=1.0.0
+
+# Worker Server (Railway)
+fastapi>=0.115.0
+uvicorn>=0.32.0
+
+# AI (report content generation)
+anthropic>=0.40.0

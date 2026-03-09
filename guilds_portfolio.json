@@ -1,0 +1,116 @@
+{
+  "_instrucoes": "Este arquivo é a fonte de verdade dos produtos e serviços da Guilds. Adicione, edite ou remova itens conforme necessário. O agente lerá este arquivo automaticamente ao gerar recomendações nos relatórios dos clientes.",
+  "_ultima_atualizacao": "05/03/2026",
+
+  "empresa": {
+    "nome": "Guilds",
+    "site": "guilds.com.br",
+    "descricao": "Empresa brasileira de tecnologia e educação especializada em desenvolvimento de software, automação com IA, jogos corporativos e consultoria digital. Transforma ideias em produtos reais através de educação prática e entrega de soluções.",
+    "diferenciais": [
+      "Foco em resultado mensurável, não apenas conteúdo",
+      "Integração entre educação e desenvolvimento real de produtos",
+      "Metodologia prática com projetos reais desde o início",
+      "Especialização em IA aplicada ao contexto brasileiro",
+      "Parceiros de longa duração, não fornecedores pontuais"
+    ]
+  },
+
+  "produtos_e_servicos": [
+    {
+      "id": "guilds-academy",
+      "nome": "Guilds Academy",
+      "categoria": "Educação",
+      "ativo": true,
+      "descricao": "Plataforma de educação prática em tecnologia. Workshops, trilhas e programas de capacitação focados em resultado imediato e aplicação real.",
+      "publico_alvo": ["Profissionais de TI", "Empreendedores", "Equipes corporativas", "Desenvolvedores"],
+      "casos_de_uso": [
+        "Upskilling de equipes em IA e automação",
+        "Formação de desenvolvedores do zero",
+        "Trilhas personalizadas por área de negócio",
+        "Capacitação em ferramentas modernas de desenvolvimento"
+      ],
+      "formato": ["Online", "Presencial", "Híbrido"],
+      "ticket_medio": "Médio-Alto"
+    },
+    {
+      "id": "guilds-craft",
+      "nome": "Guilds Craft",
+      "categoria": "Desenvolvimento de Produtos",
+      "ativo": true,
+      "descricao": "Serviço de prototipagem e desenvolvimento de ideias internas. A Guilds transforma conceitos e MVPs em produtos funcionais, trabalhando junto à equipe do cliente.",
+      "publico_alvo": ["Startups", "Scale-ups", "Empresas inovadoras", "Gestores de produto"],
+      "casos_de_uso": [
+        "Validação de MVP em tempo reduzido",
+        "Prototipagem rápida com IA",
+        "Desenvolvimento de produto com time reduzido",
+        "Transformação de ideia em produto testável"
+      ],
+      "formato": ["Projeto pontual", "Squad dedicado"],
+      "ticket_medio": "Alto"
+    },
+    {
+      "id": "guilds-services",
+      "nome": "Guilds Services",
+      "categoria": "Consultoria e Desenvolvimento",
+      "ativo": true,
+      "descricao": "Braço de serviços que transforma aprendizados e necessidades em produtos reais para clientes. Desenvolvimento sob demanda, automação e consultoria estratégica em tecnologia.",
+      "publico_alvo": ["Empresas de médio e grande porte", "PMEs em transformação digital", "Empresas buscando automação"],
+      "casos_de_uso": [
+        "Automação de processos com IA",
+        "Desenvolvimento de software personalizado",
+        "Consultoria de transformação digital",
+        "Integração de ferramentas e sistemas legados",
+        "Implementação de soluções de IA no negócio"
+      ],
+      "formato": ["Projeto", "Retainer mensal", "Consultoria pontual"],
+      "ticket_medio": "Alto"
+    },
+    {
+      "id": "pocket-hacks",
+      "nome": "Pocket Hacks Express",
+      "categoria": "Ferramentas e Metodologias",
+      "ativo": true,
+      "descricao": "Checklists, frameworks e hacks condensados para execução rápida de tarefas complexas. Foco em quem tem pouco tempo e quer resultado direto.",
+      "publico_alvo": ["Founders", "Gestores ocupados", "Equipes ágeis"],
+      "casos_de_uso": [
+        "Validação de MVP em passos simples",
+        "Processos de decisão rápida",
+        "Onboarding ágil de novos processos",
+        "Execução de estratégias sem burocracia"
+      ],
+      "formato": ["Digital", "Autoaplicável"],
+      "ticket_medio": "Baixo-Médio"
+    },
+    {
+      "id": "jogos-corporativos",
+      "nome": "Jogos Corporativos",
+      "categoria": "Engajamento e Treinamento",
+      "ativo": true,
+      "descricao": "Desenvolvimento de jogos e dinâmicas gamificadas para treinamento corporativo, onboarding, cultura organizacional e engajamento de equipes.",
+      "publico_alvo": ["RH corporativo", "Gestores de L&D", "Empresas com grandes equipes"],
+      "casos_de_uso": [
+        "Treinamento gamificado de equipes",
+        "Onboarding interativo",
+        "Cultura de inovação interna",
+        "Engajamento em programas de educação corporativa"
+      ],
+      "formato": ["Customizado por cliente", "Digital", "Presencial"],
+      "ticket_medio": "Alto"
+    }
+  ],
+
+  "_como_adicionar_produto": {
+    "instrucao": "Copie o bloco abaixo, preencha os campos e adicione dentro de 'produtos_e_servicos'",
+    "template": {
+      "id": "id-unico-sem-espacos",
+      "nome": "Nome do Produto/Serviço",
+      "categoria": "Categoria (ex: Educação, Consultoria, Ferramenta)",
+      "ativo": true,
+      "descricao": "Descrição clara do que é e como funciona",
+      "publico_alvo": ["Perfil 1", "Perfil 2"],
+      "casos_de_uso": ["Caso 1", "Caso 2"],
+      "formato": ["Formato de entrega"],
+      "ticket_medio": "Baixo / Médio / Alto"
+    }
+  }
+}

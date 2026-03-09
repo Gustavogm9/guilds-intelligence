@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guilds Intelligence System — Fluxo do Projeto</title>
+<style>
+  :root {
+    --preto: #0D0D0D;
+    --laranja: #FF6B00;
+    --laranja-light: #FFF3E0;
+    --laranja-mid: #FFB366;
+    --branco: #FFFFFF;
+    --cinza: #F5F5F5;
+    --cinza-md: #CCCCCC;
+    --cinza-esc: #666666;
+    --verde: #006633;
+    --verde-light: #E6F9EE;
+    --vermelho: #CC0000;
+    --vermelho-light: #FFF0F0;
+    --azul: #003399;
+    --azul-light: #EEF2FF;
+    --roxo: #6600CC;
+    --roxo-light: #F3EEFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #F0F0F0;
+    color: var(--preto);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--preto);
+    padding: 40px 48px 32px;
+    border-bottom: 4px solid var(--laranja);
+  }
+  .header h1 { color: var(--laranja); font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+  .header p  { color: var(--cinza-md); font-size: 14px; margin-top: 6px; }
+  .header .badge {
+    display: inline-block; background: var(--laranja); color: var(--preto);
+    font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    margin-top: 12px; margin-right: 6px;
+  }
+  .header .badge.grey { background: #333; color: #aaa; }
+
+  /* ── CONTAINER ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-size: 18px; font-weight: 900; color: var(--preto);
+    margin: 40px 0 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 2px; background: var(--laranja); opacity: 0.3;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    background: white; padding: 16px 20px; border-radius: 10px;
+    border: 1px solid var(--cinza-md); margin-bottom: 28px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── FLOW DIAGRAMS ── */
+  .flow-container {
+    background: white; border-radius: 12px;
+    border: 1px solid var(--cinza-md); padding: 28px;
+    margin-bottom: 28px; overflow-x: auto;
+  }
+  .flow-title { font-size: 15px; font-weight: 800; color: var(--preto); margin-bottom: 20px; }
+
+  .flow-row {
+    display: flex; align-items: stretch; gap: 0; flex-wrap: nowrap;
+    margin-bottom: 8px;
+  }
+  .flow-row.wrap { flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+
+  .flow-node {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 12px 16px; border-radius: 10px;
+    font-size: 12px; font-weight: 600; min-width: 120px; flex: 1;
+    position: relative;
+  }
+  .flow-node .icon { font-size: 20px; margin-bottom: 4px; }
+  .flow-node .label { font-size: 11px; font-weight: 700; }
+  .flow-node .sublabel { font-size: 10px; font-weight: 400; color: var(--cinza-esc); margin-top: 2px; }
+
+  .arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: var(--cinza-md); padding: 0 4px; flex-shrink: 0;
+  }
+  .arrow.down { flex-direction: column; font-size: 16px; padding: 4px 0; }
+
+  /* Node types */
+  .node-input    { background: var(--azul-light); border: 1.5px solid var(--azul); color: var(--azul); }
+  .node-ai       { background: var(--roxo-light); border: 2px dashed var(--roxo); color: var(--roxo); }
+  .node-process  { background: var(--cinza); border: 1.5px solid var(--cinza-md); color: #333; }
+  .node-var      { background: var(--laranja-light); border: 2px dashed var(--laranja); color: var(--laranja); }
+  .node-output   { background: var(--verde-light); border: 1.5px solid var(--verde); color: var(--verde); }
+  .node-alert    { background: var(--vermelho-light); border: 1.5px solid var(--vermelho); color: var(--vermelho); }
+  .node-free     { background: #e8f5e9; border: 1.5px solid #388e3c; color: #1b5e20; }
+  .node-schedule { background: #FFF8E1; border: 1.5px solid #F9A825; color: #795548; }
+
+  /* ── GRID 2COL ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── CARDS ── */
+  .card {
+    background: white; border-radius: 10px;
+    border: 1px solid var(--cinza-md); padding: 20px;
+  }
+  .card h3 { font-size: 13px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .card p  { font-size: 12px; color: var(--cinza-esc); line-height: 1.6; }
+  .card ul { padding-left: 16px; font-size: 12px; color: var(--cinza-esc); }
+  .card ul li { margin-bottom: 4px; }
+
+  .card.orange { border-left: 4px solid var(--laranja); }
+  .card.purple { border-left: 4px solid var(--roxo); }
+  .card.green  { border-left: 4px solid var(--verde); }
+  .card.red    { border-left: 4px solid var(--vermelho); }
+  .card.blue   { border-left: 4px solid var(--azul); }
+  .card.dark   { background: var(--preto); color: white; border: none; }
+  .card.dark h3 { color: var(--laranja); }
+  .card.dark p  { color: var(--cinza-md); }
+
+  /* ── VAR TABLE ── */
+  .var-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .var-table th {
+    background: var(--preto); color: var(--laranja);
+    padding: 8px 12px; text-align: left; font-size: 11px;
+  }
+  .var-table td { padding: 8px 12px; border-bottom: 1px solid var(--cinza); vertical-align: top; }
+  .var-table tr:nth-child(even) td { background: var(--cinza); }
+  .var-table .path  { font-family: monospace; font-size: 11px; color: var(--azul); background: var(--azul-light); padding: 2px 6px; border-radius: 4px; }
+  .var-table .badge-edit { background: var(--laranja); color: var(--preto); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .var-table .badge-auto { background: var(--roxo); color: white; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .var-table .badge-code { background: var(--cinza-md); color: #333; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+
+  /* ── COST TABLE ── */
+  .cost-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cost-table th { background: var(--preto); color: var(--laranja); padding: 9px 14px; text-align: left; font-size: 11px; }
+  .cost-table td { padding: 9px 14px; border-bottom: 1px solid var(--cinza); vertical-align: top; }
+  .cost-table tr:nth-child(even) td { background: var(--cinza); }
+  .cost-table .cost-hi  { color: var(--vermelho); font-weight: 700; }
+  .cost-table .cost-med { color: var(--laranja); font-weight: 700; }
+  .cost-table .cost-low { color: var(--verde); font-weight: 700; }
+  .cost-table .cost-free { color: var(--verde); font-weight: 700; font-size: 11px; }
+  .cost-table .total-row td { background: var(--preto); color: var(--laranja); font-weight: 700; }
+
+  /* ── AI POINTS ── */
+  .ai-point {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 16px; border-radius: 10px;
+    border: 1.5px dashed var(--roxo); background: var(--roxo-light);
+    margin-bottom: 10px;
+  }
+  .ai-point .ai-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+  .ai-point h4 { font-size: 13px; font-weight: 800; color: var(--roxo); margin-bottom: 4px; }
+  .ai-point p  { font-size: 12px; color: var(--cinza-esc); }
+  .ai-point .tokens { font-size: 11px; background: var(--roxo); color: white; padding: 2px 8px; border-radius: 10px; margin-top: 6px; display: inline-block; font-weight: 700; }
+
+  /* ── OUTPUT BOX ── */
+  .output-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px; margin-top: 12px;
+  }
+  .output-item {
+    background: var(--verde-light); border: 1.5px solid var(--verde);
+    border-radius: 8px; padding: 10px 12px; text-align: center;
+    font-size: 11px; font-weight: 700; color: var(--verde);
+  }
+  .output-item .out-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 18px; border-radius: 10px; margin: 16px 0;
+  }
+  .callout.info    { background: var(--azul-light); border-left: 4px solid var(--azul); }
+  .callout.warning { background: var(--vermelho-light); border-left: 4px solid var(--vermelho); }
+  .callout.tip     { background: var(--laranja-light); border-left: 4px solid var(--laranja); }
+  .callout p { font-size: 12px; line-height: 1.6; }
+  .callout strong { font-weight: 700; }
+
+  /* ── COST SUMMARY ── */
+  .cost-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin: 20px 0;
+  }
+  .cost-box {
+    background: white; border-radius: 10px; padding: 18px 20px;
+    border: 1.5px solid var(--cinza-md); text-align: center;
+  }
+  .cost-box .val { font-size: 26px; font-weight: 900; color: var(--laranja); display: block; }
+  .cost-box .desc { font-size: 11px; color: var(--cinza-esc); margin-top: 4px; }
+  .cost-box.highlight { background: var(--preto); border-color: var(--laranja); }
+  .cost-box.highlight .val  { color: var(--laranja); }
+  .cost-box.highlight .desc { color: var(--cinza-md); }
+
+  /* ── SUBSYSTEM HEADER ── */
+  .subsystem {
+    border-radius: 12px; overflow: hidden; margin-bottom: 28px;
+    border: 2px solid var(--cinza-md);
+  }
+  .subsystem-header {
+    background: var(--preto); padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .subsystem-header h2 { color: white; font-size: 16px; font-weight: 900; }
+  .subsystem-header .tag { background: var(--laranja); color: var(--preto); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .subsystem-body { background: white; padding: 24px; }
+
+  /* ── FILE TREE ── */
+  .file-tree {
+    font-family: monospace; font-size: 12px; background: #1a1a2e;
+    color: #aaa; padding: 20px 24px; border-radius: 8px; line-height: 1.8;
+  }
+  .file-tree .dir   { color: #64b5f6; }
+  .file-tree .file  { color: #a5d6a7; }
+  .file-tree .edit  { color: var(--laranja-mid); font-weight: bold; }
+  .file-tree .auto  { color: #ce93d8; }
+  .file-tree .note  { color: #546e7a; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--preto); padding: 24px 48px;
+    color: var(--cinza-md); font-size: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 3px solid var(--laranja);
+  }
+  .footer strong { color: var(--laranja); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>⚡ Guilds Intelligence System — Arquitetura & Fluxo</h1>
+  <p>Documento de referência técnica e operacional do sistema completo</p>
+  <span class="badge">v1.0</span>
+  <span class="badge">05/03/2026</span>
+  <span class="badge grey">Confidencial</span>
+</div>
+
+<div class="container">
+
+  <!-- LEGENDA -->
+  <div class="section-title">🗺️ Legenda do Mapa</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#003399"></div> Entrada de dados / Input</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#6600CC; border: 2px dashed #6600CC; background: transparent;"></div> <span style="color:#6600CC">🤖 Executa IA / Consome tokens</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FF6B00; border: 2px dashed #FF6B00; background: transparent;"></div> <span style="color:#FF6B00">🔧 Variável configurável</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#888"></div> Processamento (Python, sem IA)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#006633"></div> Saída / Output gerado</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1b5e20"></div> Gratuito / Sem custo de token</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F9A825"></div> Agendado / Automático</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- VISÃO GERAL -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">🏗️ Visão Geral — Dois Subsistemas</div>
+
+  <div class="grid-2">
+    <div class="subsystem">
+      <div class="subsystem-header">
+        <span style="font-size:22px">📡</span>
+        <h2>Subsistema 1</h2>
+        <span class="tag">DIÁRIO AUTOMÁTICO</span>
+      </div>
+      <div class="subsystem-body">
+        <p style="font-size:13px; font-weight:700; color:var(--preto); margin-bottom:8px">Daily Market Intelligence Engine</p>
+        <p style="font-size:12px; color:var(--cinza-esc); margin-bottom:12px">
+          Roda todo dia às 8h automaticamente. Pesquisa 15 nichos estratégicos
+          e gera relatório de mercado para uso interno da Guilds.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <span style="background:#F3EEFF;color:#6600CC;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">🤖 IA: Claude Agent (pesquisa + síntese)</span>
+          <span style="background:#FFF8E1;color:#795548;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">⏰ Agendado: 08:00 todos os dias</span>
+          <span style="background:var(--laranja-light);color:var(--laranja);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">🔧 Nichos: configurável</span>
+        </div>
+        <div class="output-grid" style="margin-top:14px">
+          <div class="output-item"><span class="out-icon">📄</span>PDF Completo</div>
+          <div class="output-item"><span class="out-icon">📋</span>PDF One Page</div>
+          <div class="output-item"><span class="out-icon">💬</span>TXT WhatsApp</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsystem">
+      <div class="subsystem-header">
+        <span style="font-size:22px">🎯</span>
+        <h2>Subsistema 2</h2>
+        <span class="tag">POR CLIENTE / SOB DEMANDA</span>
+      </div>
+      <div class="subsystem-body">
+        <p style="font-size:13px; font-weight:700; color:var(--preto); margin-bottom:8px">Client Intelligence System</p>
+        <p style="font-size:12px; color:var(--cinza-esc); margin-bottom:12px">
+          Executado sob demanda por cliente. Pesquisa nichos específicos do
+          negócio, gera relatório personalizado + pack de social media.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <span style="background:#F3EEFF;color:#6600CC;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">🤖 IA: Claude Agent (pesquisa + síntese + personalização)</span>
+          <span style="background:var(--azul-light);color:var(--azul);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">📥 Input: perfil do cliente</span>
+          <span style="background:var(--laranja-light);color:var(--laranja);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700">🔧 Portfolio Guilds: configurável</span>
+        </div>
+        <div class="output-grid" style="margin-top:14px">
+          <div class="output-item"><span class="out-icon">📄</span>PDF Completo</div>
+          <div class="output-item"><span class="out-icon">📋</span>PDF One Page</div>
+          <div class="output-item"><span class="out-icon">💬</span>TXT WhatsApp</div>
+          <div class="output-item"><span class="out-icon">🎧</span>MP3 Áudio</div>
+          <div class="output-item"><span class="out-icon">📸</span>8 Cards Feed</div>
+          <div class="output-item"><span class="out-icon">📱</span>Story + Copy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- FLUXO 1: DAILY INTELLIGENCE -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">📡 Fluxo Detalhado — Subsistema 1: Daily Intelligence</div>
+
+  <div class="flow-container">
+    <div class="flow-title">⏰ Trigger → Pesquisa → Síntese → Geração de Artefatos</div>
+
+    <!-- Linha 1: Trigger e config -->
+    <div class="flow-row">
+      <div class="flow-node node-schedule">
+        <span class="icon">⏰</span>
+        <span class="label">Agendamento</span>
+        <span class="sublabel">08:00 diário</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-var">
+        <span class="icon">🔧</span>
+        <span class="label">Lista de 15 Nichos</span>
+        <span class="sublabel">variável no SKILL.md</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-ai">
+        <span class="icon">🤖</span>
+        <span class="label">Claude Agent</span>
+        <span class="sublabel">lê config + inicia</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-ai">
+        <span class="icon">🔍</span>
+        <span class="label">Web Search</span>
+        <span class="sublabel">~30 buscas / 15 nichos</span>
+      </div>
+    </div>
+
+    <div style="text-align:center; color:var(--cinza-md); padding:4px 0">↓</div>
+
+    <!-- Linha 2: Síntese e geração -->
+    <div class="flow-row">
+      <div class="flow-node node-ai">
+        <span class="icon">🧠</span>
+        <span class="label">Síntese Claude</span>
+        <span class="sublabel">analisa + estrutura</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-process">
+        <span class="icon">🐍</span>
+        <span class="label">ReportLab</span>
+        <span class="sublabel">PDF — sem tokens</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-output">
+        <span class="icon">📄</span>
+        <span class="label">PDF Completo</span>
+        <span class="sublabel">News-Guilds/</span>
+      </div>
+      <div class="arrow">+</div>
+      <div class="flow-node node-output">
+        <span class="icon">📋</span>
+        <span class="label">PDF One Page</span>
+        <span class="sublabel">News-Guilds/</span>
+      </div>
+      <div class="arrow">+</div>
+      <div class="flow-node node-output">
+        <span class="icon">💬</span>
+        <span class="label">TXT WhatsApp</span>
+        <span class="sublabel">News-Guilds/</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variáveis do Subsistema 1 -->
+  <div class="card orange">
+    <h3>🔧 Variáveis Configuráveis — Subsistema 1</h3>
+    <table class="var-table" style="margin-top:10px">
+      <tr>
+        <th>Variável</th><th>Onde está</th><th>Tipo</th><th>Impacto</th>
+      </tr>
+      <tr>
+        <td><strong>Lista de nichos</strong> (15 temas)</td>
+        <td><span class="path">Scheduled/guilds-daily-market-intelligence/SKILL.md</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Define o que é pesquisado a cada dia</td>
+      </tr>
+      <tr>
+        <td><strong>Horário de execução</strong></td>
+        <td>Painel Scheduled no Cowork (cron: <span class="path">0 8 * * *</span>)</td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Quando o relatório é gerado</td>
+      </tr>
+      <tr>
+        <td><strong>Perspectiva de análise</strong></td>
+        <td><span class="path">SKILL.md → campo PERSPECTIVA</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Tom e filtro dos insights (empreendedor tech BR)</td>
+      </tr>
+      <tr>
+        <td><strong>Fontes prioritárias</strong></td>
+        <td><span class="path">SKILL.md → BASE DE FONTES</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Quais sites o agente prioriza nas buscas</td>
+      </tr>
+      <tr>
+        <td><strong>Pasta de saída</strong></td>
+        <td><span class="path">News-Guilds/</span> (pasta selecionada no Cowork)</td>
+        <td><span class="badge-code">FIXO</span></td>
+        <td>Onde os PDFs são salvos</td>
+      </tr>
+      <tr>
+        <td><strong>Identidade visual (cores, logo)</strong></td>
+        <td><span class="path">generate_guilds_report.py → seção CORES GUILDS</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Visual dos PDFs gerados</td>
+      </tr>
+    </table>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- FLUXO 2: CLIENT INTELLIGENCE -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">🎯 Fluxo Detalhado — Subsistema 2: Client Intelligence</div>
+
+  <div class="flow-container">
+    <div class="flow-title">Dados do Cliente → Mapeamento → Pesquisa → Personalização → 6 Outputs</div>
+
+    <!-- Fase 1: Input -->
+    <div style="font-size:11px;font-weight:700;color:var(--cinza-esc);margin-bottom:8px">FASE 1 — ENTRADA</div>
+    <div class="flow-row">
+      <div class="flow-node node-input" style="min-width:150px">
+        <span class="icon">📝</span>
+        <span class="label">Dados do cliente</span>
+        <span class="sublabel">qualquer formato de texto</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-ai">
+        <span class="icon">🤖</span>
+        <span class="label">Claude extrai</span>
+        <span class="sublabel">e monta profile.json</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-var">
+        <span class="icon">🔧</span>
+        <span class="label">profile.json</span>
+        <span class="sublabel">clients/{id}/profile.json</span>
+      </div>
+      <div class="arrow">+</div>
+      <div class="flow-node node-var">
+        <span class="icon">🔧</span>
+        <span class="label">guilds_portfolio.json</span>
+        <span class="sublabel">produtos da Guilds</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:var(--cinza-md);padding:4px 0">↓</div>
+
+    <!-- Fase 2: Pesquisa -->
+    <div style="font-size:11px;font-weight:700;color:var(--cinza-esc);margin-bottom:8px">FASE 2 — PESQUISA PERSONALIZADA</div>
+    <div class="flow-row">
+      <div class="flow-node node-ai">
+        <span class="icon">🗺️</span>
+        <span class="label">Mapeia nichos</span>
+        <span class="sublabel">diretos + indiretos do cliente</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-ai">
+        <span class="icon">🔍</span>
+        <span class="label">Web Search</span>
+        <span class="sublabel">~14 buscas / 7 nichos</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-ai">
+        <span class="icon">🧠</span>
+        <span class="label">Síntese + filtro</span>
+        <span class="sublabel">pelo perfil do cliente</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-node node-ai">
+        <span class="icon">🏆</span>
+        <span class="label">Rec. Guilds</span>
+        <span class="sublabel">produtos relevantes</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:var(--cinza-md);padding:4px 0">↓</div>
+
+    <!-- Fase 3: Geração -->
+    <div style="font-size:11px;font-weight:700;color:var(--cinza-esc);margin-bottom:8px">FASE 3 — GERAÇÃO DE OUTPUTS (Python — sem tokens adicionais)</div>
+    <div class="flow-row wrap">
+      <div class="flow-node node-process" style="min-width:120px">
+        <span class="icon">🐍</span>
+        <span class="label">ReportLab</span>
+        <span class="sublabel">PDF completo + one page</span>
+      </div>
+      <div class="flow-node node-free" style="min-width:120px">
+        <span class="icon">🗣️</span>
+        <span class="label">gTTS</span>
+        <span class="sublabel">MP3 narrado — gratuito</span>
+      </div>
+      <div class="flow-node node-process" style="min-width:120px">
+        <span class="icon">🖼️</span>
+        <span class="label">Pillow</span>
+        <span class="sublabel">cards PNG 1080x1080</span>
+      </div>
+      <div class="flow-node node-process" style="min-width:120px">
+        <span class="icon">📝</span>
+        <span class="label">TXT puro</span>
+        <span class="sublabel">copy WhatsApp + Instagram</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:var(--cinza-md);padding:4px 0">↓</div>
+
+    <!-- Outputs finais -->
+    <div style="font-size:11px;font-weight:700;color:var(--cinza-esc);margin-bottom:8px">OUTPUTS FINAIS — clients/{id}/reports/{data}/</div>
+    <div class="output-grid">
+      <div class="output-item"><span class="out-icon">📄</span>PDF Completo<br><small style="font-weight:400">Relatório personalizado</small></div>
+      <div class="output-item"><span class="out-icon">📋</span>PDF One Page<br><small style="font-weight:400">Briefing executivo</small></div>
+      <div class="output-item"><span class="out-icon">💬</span>TXT WhatsApp<br><small style="font-weight:400">Mensagem pronta</small></div>
+      <div class="output-item"><span class="out-icon">🎧</span>MP3 Áudio<br><small style="font-weight:400">~2-3 min narrado</small></div>
+      <div class="output-item"><span class="out-icon">📸</span>8 Cards Feed<br><small style="font-weight:400">Instagram 1080x1080</small></div>
+      <div class="output-item"><span class="out-icon">📱</span>Story 1080x1920<br><small style="font-weight:400">WhatsApp Status</small></div>
+      <div class="output-item"><span class="out-icon">📝</span>Copy completa<br><small style="font-weight:400">Legendas + captions</small></div>
+    </div>
+  </div>
+
+  <!-- Variáveis do Subsistema 2 -->
+  <div class="card orange">
+    <h3>🔧 Variáveis Configuráveis — Subsistema 2</h3>
+    <table class="var-table" style="margin-top:10px">
+      <tr>
+        <th>Variável</th><th>Onde está</th><th>Tipo</th><th>Impacto</th>
+      </tr>
+      <tr>
+        <td><strong>Portfólio de produtos da Guilds</strong></td>
+        <td><span class="path">ClientIntelligence/guilds_portfolio.json</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>O que é recomendado em cada relatório</td>
+      </tr>
+      <tr>
+        <td><strong>Perfil do cliente</strong> (setor, dores, objetivos)</td>
+        <td><span class="path">clients/{id}/profile.json</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Contexto para personalização total do relatório</td>
+      </tr>
+      <tr>
+        <td><strong>Nichos monitorados por cliente</strong></td>
+        <td><span class="path">profile.json → nichos_mapeados_pelo_agente</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>O que é pesquisado para cada cliente</td>
+      </tr>
+      <tr>
+        <td><strong>Tom e profundidade do relatório</strong></td>
+        <td><span class="path">profile.json → preferencias_conteudo</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Ajusta tom (técnico, executivo, acessível) e nível de detalhe</td>
+      </tr>
+      <tr>
+        <td><strong>Cores e identidade visual dos cards</strong></td>
+        <td><span class="path">engine/gerar_social_media.py → seção CORES</span></td>
+        <td><span class="badge-edit">EDITAR</span></td>
+        <td>Visual dos cards de Instagram/WhatsApp</td>
+      </tr>
+      <tr>
+        <td><strong>Logo do cliente nos cards</strong></td>
+        <td><span class="path">profile.json → logo_path</span> (a adicionar)</td>
+        <td><span class="badge-edit">ADICIONAR</span></td>
+        <td>Personaliza cards com marca do cliente</td>
+      </tr>
+      <tr>
+        <td><strong>Histórico de relatórios</strong></td>
+        <td><span class="path">profile.json → historico_relatorios</span></td>
+        <td><span class="badge-auto">AUTO</span></td>
+        <td>Gerado automaticamente — memória do cliente</td>
+      </tr>
+    </table>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- PONTOS DE IA -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">🤖 Onde a IA é Executada — Todos os Pontos</div>
+
+  <div class="callout info">
+    <p>⚠️ <strong>Importante:</strong> Os scripts Python (<code>gerar_relatorio_cliente.py</code>, <code>gerar_social_media.py</code>) <strong>não consomem tokens</strong> — são apenas formatação/renderização. Todos os tokens são consumidos pelo Claude Agent durante as fases de pesquisa e síntese, <em>antes</em> de chamar os scripts.</p>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="ai-point">
+        <span class="ai-icon">🔍</span>
+        <div>
+          <h4>Web Search — buscas em tempo real</h4>
+          <p>Cada busca consome tokens de input (query) e de output (resultados processados). O agente lê e interpreta os resultados, o que gera consumo significativo.</p>
+          <span class="tokens">~1.000–1.500 tokens por busca</span>
+        </div>
+      </div>
+
+      <div class="ai-point">
+        <span class="ai-icon">🧠</span>
+        <div>
+          <h4>Síntese e Análise dos Resultados</h4>
+          <p>Claude lê todos os resultados das buscas, identifica padrões, elimina ruído, e estrutura os insights em categorias. É a etapa de maior consumo de contexto.</p>
+          <span class="tokens">~8.000–15.000 tokens de input + ~5.000–8.000 output</span>
+        </div>
+      </div>
+
+      <div class="ai-point">
+        <span class="ai-icon">📝</span>
+        <div>
+          <h4>Escrita do Conteúdo dos Relatórios</h4>
+          <p>Claude gera o texto de cada seção do relatório: fatos, análises, recomendações, impacto para o cliente, mensagem da Guilds. Texto estruturado de alta qualidade.</p>
+          <span class="tokens">~3.000–6.000 tokens de output</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="ai-point">
+        <span class="ai-icon">🗺️</span>
+        <div>
+          <h4>Mapeamento de Nichos por Cliente</h4>
+          <p>Dado o perfil do cliente, Claude identifica quais nichos impactam o negócio direta e indiretamente, com justificativas. Acontece uma vez por cliente (ou quando o perfil muda).</p>
+          <span class="tokens">~2.000 tokens input + ~500 tokens output</span>
+        </div>
+      </div>
+
+      <div class="ai-point">
+        <span class="ai-icon">👤</span>
+        <div>
+          <h4>Extração de Perfil de Cliente (texto livre → JSON)</h4>
+          <p>Quando você passa dados do cliente em qualquer formato, Claude lê e estrutura o profile.json. Acontece apenas uma vez no onboarding de cada cliente.</p>
+          <span class="tokens">~2.000 tokens input + ~1.000 tokens output</span>
+        </div>
+      </div>
+
+      <div class="ai-point" style="border-color:#388e3c; background:#e8f5e9;">
+        <span class="ai-icon">🗣️</span>
+        <div>
+          <h4 style="color:#1b5e20">gTTS — Áudio MP3 (SEM tokens)</h4>
+          <p style="color:#2e7d32">Google Text-to-Speech API gratuita. O roteiro é gerado pelo Claude (conta nos tokens acima), mas a conversão em áudio é feita pelo gTTS — sem custo adicional.</p>
+          <span style="background:#388e3c" class="tokens">GRATUITO — 0 tokens</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CUSTOS E TOKENS -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">💰 Estimativa de Tokens e Custo por Uso</div>
+
+  <div class="callout tip">
+    <p>📌 <strong>Modelo de referência:</strong> Claude Sonnet 4.6 — <strong>$3,00 por 1M tokens de input</strong> e <strong>$15,00 por 1M tokens de output</strong>. Todos os valores são estimativas médias — podem variar ±30% dependendo da quantidade de resultados de busca e extensão dos relatórios gerados.</p>
+  </div>
+
+  <div class="flow-container">
+    <table class="cost-table">
+      <tr>
+        <th>Operação</th>
+        <th>Tokens Input</th>
+        <th>Tokens Output</th>
+        <th>Custo Input</th>
+        <th>Custo Output</th>
+        <th>Custo Total</th>
+        <th>Frequência</th>
+      </tr>
+      <tr>
+        <td><strong>🔍 Busca web individual</strong><br><small>query + leitura do resultado</small></td>
+        <td>~700</td>
+        <td>~500</td>
+        <td>$0,0021</td>
+        <td>$0,0075</td>
+        <td class="cost-low">~$0,01</td>
+        <td>Por busca</td>
+      </tr>
+      <tr>
+        <td><strong>📡 Daily Intelligence (15 nichos)</strong><br><small>~30 buscas + síntese + escrita PDFs</small></td>
+        <td>~25.000</td>
+        <td>~12.000</td>
+        <td>$0,075</td>
+        <td>$0,18</td>
+        <td class="cost-med">~$0,26</td>
+        <td>Por execução</td>
+      </tr>
+      <tr>
+        <td><strong>🎯 Relatório de cliente completo</strong><br><small>perfil + 7 nichos + personalização + social</small></td>
+        <td>~30.000</td>
+        <td>~13.000</td>
+        <td>$0,09</td>
+        <td>$0,195</td>
+        <td class="cost-med">~$0,29</td>
+        <td>Por relatório</td>
+      </tr>
+      <tr>
+        <td><strong>👤 Onboarding de cliente</strong><br><small>texto livre → profile.json + mapeamento de nichos</small></td>
+        <td>~4.000</td>
+        <td>~1.500</td>
+        <td>$0,012</td>
+        <td>$0,022</td>
+        <td class="cost-low">~$0,03</td>
+        <td>Uma vez</td>
+      </tr>
+      <tr>
+        <td><strong>🔬 Deep Dive em 1 nicho</strong><br><small>pesquisa aprofundada + análise específica</small></td>
+        <td>~12.000</td>
+        <td>~5.000</td>
+        <td>$0,036</td>
+        <td>$0,075</td>
+        <td class="cost-low">~$0,11</td>
+        <td>Por pedido</td>
+      </tr>
+      <tr>
+        <td><strong>🗣️ Geração de áudio MP3 (gTTS)</strong></td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td class="cost-free">GRATUITO</td>
+        <td>Por relatório</td>
+      </tr>
+      <tr>
+        <td><strong>🖼️ Geração de cards PNG (Pillow)</strong></td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td class="cost-free">GRATUITO</td>
+        <td>Por relatório</td>
+      </tr>
+      <tr>
+        <td><strong>📄 Geração de PDFs (ReportLab)</strong></td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td class="cost-free">GRATUITO</td>
+        <td>Por relatório</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Resumo de custo por cenário -->
+  <div class="section-title">📊 Custo Total por Cenário de Uso</div>
+
+  <div class="cost-summary">
+    <div class="cost-box">
+      <span class="val">~$7,80</span>
+      <span class="desc">Daily Intelligence por mês<br>(30 dias × $0,26/dia)</span>
+    </div>
+    <div class="cost-box">
+      <span class="val">~$0,29</span>
+      <span class="desc">Por relatório de cliente<br>(pesquisa + todos os outputs)</span>
+    </div>
+    <div class="cost-box">
+      <span class="val">~$8,70</span>
+      <span class="desc">Daily + 30 relatórios/mês<br>(1 relatório por dia útil)</span>
+    </div>
+    <div class="cost-box highlight">
+      <span class="val">~$0,03</span>
+      <span class="desc">Custo de onboarding<br>de novo cliente</span>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <p>⚠️ <strong>Atenção aos custos do Cowork:</strong> Esses valores são os custos de API do Claude. Se você usar o plano Claude Pro/Team ou Cowork com plano pago, verifique se as execuções automáticas agendadas consomem tokens do seu plano ou se há cobrança separada por execução. <strong>O custo por relatório de cliente gerado (~$0,29) é o seu custo, não o preço que você cobra do cliente</strong> — a margem depende do seu modelo de precificação.</p>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- ESTRUTURA DE ARQUIVOS -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">📁 Estrutura Completa de Arquivos</div>
+
+  <div class="file-tree">
+<span class="dir">News-Guilds/</span>                                        <span class="note">← pasta raiz (selecionada no Cowork)</span>
+│
+├── <span class="file">Guilds_Intelligence_Completo_DDMMAAAA.pdf</span>       <span class="note">← output do subsistema 1</span>
+├── <span class="file">Guilds_Intelligence_OnePage_DDMMAAAA.pdf</span>
+├── <span class="file">Guilds_Intelligence_WhatsApp_DDMMAAAA.txt</span>
+│
+├── <span class="dir">ClientIntelligence/</span>
+│   ├── <span class="edit">guilds_portfolio.json</span>                        <span class="note">← 🔧 EDITE: produtos/serviços da Guilds</span>
+│   ├── <span class="file">README.md</span>                                    <span class="note">← guia de uso do sistema</span>
+│   ├── <span class="file">FLUXO_DO_PROJETO.html</span>                        <span class="note">← este arquivo</span>
+│   │
+│   ├── <span class="dir">engine/</span>
+│   │   ├── <span class="edit">gerar_relatorio_cliente.py</span>               <span class="note">← motor principal + integração</span>
+│   │   └── <span class="edit">gerar_social_media.py</span>                    <span class="note">← gerador de cards e copies</span>
+│   │
+│   └── <span class="dir">clients/</span>
+│       └── <span class="dir">{id-do-cliente}/</span>
+│           ├── <span class="edit">profile.json</span>                         <span class="note">← 🔧 EDITE: perfil do cliente</span>
+│           └── <span class="dir">reports/</span>
+│               └── <span class="dir">DDMMAAAA/</span>                         <span class="note">← auto-gerado a cada relatório</span>
+│                   ├── <span class="auto">Guilds_Intelligence_{Cliente}_DDMMAAAA.pdf</span>
+│                   ├── <span class="auto">Guilds_Briefing_{Cliente}_DDMMAAAA.pdf</span>
+│                   ├── <span class="auto">Guilds_WhatsApp_{Cliente}_DDMMAAAA.txt</span>
+│                   ├── <span class="auto">Guilds_Audio_{Cliente}_DDMMAAAA.mp3</span>
+│                   └── <span class="dir">social_media/</span>
+│                       ├── <span class="dir">feed/</span>
+│                       │   ├── <span class="auto">00_capa_DDMMAAAA.png</span>
+│                       │   ├── <span class="auto">01_insight_1_DDMMAAAA.png</span>
+│                       │   ├── <span class="auto">...</span>
+│                       │   ├── <span class="auto">06_oportunidade_DDMMAAAA.png</span>
+│                       │   └── <span class="auto">07_alerta_DDMMAAAA.png</span>
+│                       ├── <span class="dir">stories/</span>
+│                       │   └── <span class="auto">story_DDMMAAAA.png</span>
+│                       └── <span class="dir">copy/</span>
+│                           └── <span class="auto">Guilds_SocialCopy_{Cliente}_DDMMAAAA.txt</span>
+│
+└── <span class="dir">Scheduled/</span>                                        <span class="note">← gerenciado pelo Cowork</span>
+    └── <span class="dir">guilds-daily-market-intelligence/</span>
+        └── <span class="edit">SKILL.md</span>                                 <span class="note">← 🔧 EDITE: nichos, fontes, horário</span>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- O QUE AINDA NÃO FOI FEITO -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="section-title">🚧 O Que Ainda Não Foi Construído</div>
+
+  <div class="grid-3">
+    <div class="card red">
+      <h3>🖼️ Logo do cliente nos cards</h3>
+      <p>Cards ainda usam apenas o branding da Guilds. Adicionar <code>logo_path</code> no <code>profile.json</code> e integrar no <code>gerar_social_media.py</code> para imprimir o logo do cliente nos cards.</p>
+      <p style="margin-top:8px; font-size:11px; color:var(--laranja)">Estimativa: ~30 min de desenvolvimento</p>
+    </div>
+    <div class="card red">
+      <h3>📧 Envio automático por email</h3>
+      <p>O relatório é gerado mas precisa ser enviado manualmente. Integrar SMTP ou API (SendGrid, Resend) para entregar PDF + MP3 + cards diretamente no email do cliente.</p>
+      <p style="margin-top:8px; font-size:11px; color:var(--laranja)">Estimativa: ~1h de desenvolvimento</p>
+    </div>
+    <div class="card red">
+      <h3>📲 Envio automático por WhatsApp</h3>
+      <p>Integrar WhatsApp Business API (Twilio, Z-API, WPPConnect) para enviar o briefing e os cards automaticamente para o número do cliente.</p>
+      <p style="margin-top:8px; font-size:11px; color:var(--laranja)">Estimativa: ~2h + conta na API</p>
+    </div>
+    <div class="card red">
+      <h3>🔄 Deep Dive via cliente</h3>
+      <p>Cliente ainda não tem como pedir relatórios aprofundados diretamente. Precisa de uma interface (formulário web, bot WhatsApp ou link de email) para o cliente fazer pedidos.</p>
+      <p style="margin-top:8px; font-size:11px; color:var(--laranja)">Estimativa: depende da interface escolhida</p>
+    </div>
+    <div class="card red">
+      <h3>📊 Painel de controle / dashboard</h3>
+      <p>Não há visibilidade dos relatórios gerados, clientes ativos ou uso de tokens. Um dashboard simples em HTML ou planilha mostraria o histórico e facilitaria a gestão.</p>
+      <p style="margin-top:8px; font-size:11px; color:var(--laranja)">Estimativa: ~1h para dashboard simples</p>
+    </div>
+    <div class="card red">
+      <h3>💳 Registro de uso para cobrança</h3>
+      <p>Não há log automático de "relatórios gerados por cliente" para facilitar o faturamento. Um arquivo de log simples resolveria isso facilmente.</p>
+      <p style="margin-top:8px; font-size:11px; color:var(--laranja)">Estimativa: ~20 min de desenvolvimento</p>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <strong>Guilds Intelligence System</strong> — Documento de Arquitetura v1.0<br>
+    Gerado em 05/03/2026
+  </div>
+  <div style="text-align:right">
+    <strong>guilds.com.br</strong><br>
+    <span style="font-size:11px">Confidencial — uso interno</span>
+  </div>
+</div>
+
+</body>
+</html>

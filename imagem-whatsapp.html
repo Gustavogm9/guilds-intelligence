@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Imagem WhatsApp — Guilds Intelligence Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      padding: 32px;
+      gap: 16px;
+    }
+    .hint {
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+      text-align: center;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+
+    /* ============ THE CARD ============ */
+    .card {
+      width: 540px;
+      height: 540px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #0a0a1a;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Background grid */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Glow blobs */
+    .glow-top {
+      position: absolute;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,0.55) 0%, transparent 65%);
+      top: -140px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .glow-bottom-left {
+      position: absolute;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168,85,247,0.35) 0%, transparent 70%);
+      bottom: -60px; left: -40px;
+      pointer-events: none;
+    }
+    .glow-bottom-right {
+      position: absolute;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(236,72,153,0.25) 0%, transparent 70%);
+      bottom: 30px; right: -30px;
+      pointer-events: none;
+    }
+
+    /* Badge — pinned to top */
+    .badge {
+      position: absolute;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      border-radius: 999px;
+      padding: 6px 16px;
+      color: #a5b4fc;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #6366f1;
+      flex-shrink: 0;
+    }
+
+    /* Logo — pinned to bottom */
+    .logo-row {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .logo-icon {
+      width: 24px; height: 24px;
+      background: rgba(99,102,241,0.8);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-icon svg { width: 14px; height: 14px; fill: white; }
+    .logo-text {
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.3px;
+    }
+    .logo-text span { color: rgba(255,255,255,0.2); font-weight: 400; }
+
+    /* Content layer — center block only */
+    .content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 44px 72px;
+      text-align: center;
+      gap: 0;
+    }
+
+    /* Main headline */
+    .headline {
+      font-size: 42px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.12;
+      letter-spacing: -1.5px;
+      margin-bottom: 14px;
+    }
+    .headline .accent {
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Subline */
+    .subline {
+      font-size: 14px;
+      color: rgba(255,255,255,0.42);
+      line-height: 1.5;
+      max-width: 340px;
+      margin-bottom: 24px;
+    }
+
+    /* Offer pill */
+    .offer-pill {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 14px;
+      padding: 14px 28px;
+      margin-bottom: 18px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .offer-top {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 3px;
+    }
+    .offer-main {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .offer-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    /* Details row */
+    .details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .detail {
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.3);
+      font-weight: 500;
+    }
+    .detail-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.15); flex-shrink: 0; }
+
+    /* Decorative corner lines */
+    .corner-tl, .corner-br {
+      position: absolute;
+      width: 40px; height: 40px;
+      z-index: 5;
+    }
+    .corner-tl { top: 20px; left: 20px; border-top: 2px solid rgba(99,102,241,0.4); border-left: 2px solid rgba(99,102,241,0.4); border-radius: 4px 0 0 0; }
+    .corner-br { bottom: 20px; right: 20px; border-bottom: 2px solid rgba(99,102,241,0.4); border-right: 2px solid rgba(99,102,241,0.4); border-radius: 0 0 4px 0; }
+  </style>
+</head>
+<body>
+
+  <p class="hint">💡 Para exportar: no Chrome, abra DevTools (F12) → Ctrl+Shift+P → "Capture node screenshot" com o elemento .card selecionado. Ou use print screen com zoom 2× para resolução 1080×1080.</p>
+
+  <div class="card">
+    <div class="grid-bg"></div>
+    <div class="glow-top"></div>
+    <div class="glow-bottom-left"></div>
+    <div class="glow-bottom-right"></div>
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+
+    <!-- Badge — fixo no topo -->
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Oferta exclusiva · Membros do grupo
+    </div>
+
+    <!-- Logo — fixo no rodapé -->
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div class="logo-text">Guilds <span>· guilds.com.br</span></div>
+    </div>
+
+    <!-- Bloco central — sempre centralizado -->
+    <div class="content">
+      <h1 class="headline">
+        Chegue na próxima<br/>reunião sabendo o que<br/><span class="accent">ninguém na sala</span><br/>ainda sabe.
+      </h1>
+
+      <p class="subline">
+        Seu mercado não para enquanto você toca a operação. Nós monitoramos por você e entregamos o que importa, todo mês.
+      </p>
+
+      <div class="offer-pill">
+        <div class="offer-top">🎁 Oferta de lançamento</div>
+        <div class="offer-main">1º relatório completamente grátis</div>
+        <div class="offer-sub">+ desconto permanente para membros do grupo</div>
+      </div>
+
+      <div class="details">
+        <div class="detail">Sem fidelidade</div>
+        <div class="detail-dot"></div>
+        <div class="detail">Cancele quando quiser</div>
+        <div class="detail-dot"></div>
+        <div class="detail">A partir de R$247/mês</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="hint">Dimensão: 540×540px (exporte em 1080×1080 para máxima qualidade) · Funciona perfeitamente em feed e como imagem de grupo no WhatsApp</p>
+
+</body>
+</html>

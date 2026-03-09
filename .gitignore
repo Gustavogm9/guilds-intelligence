@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated reports (keep example, ignore client-generated)
+clients/*/reports/*/
+!clients/exemplo-cliente/reports/
+
+# Node.js (for future Next.js platform)
+node_modules/
+.next/
+out/
+.vercel/
+
+# Supabase
+supabase/.temp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/

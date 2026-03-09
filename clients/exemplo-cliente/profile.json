@@ -1,0 +1,81 @@
+{
+  "_gerado_em": "05/03/2026",
+  "_versao": 1,
+  "id": "exemplo-cliente",
+  "nome_empresa": "TechFarma Soluções",
+  "contato": {
+    "nome": "Ana Paula Rodrigues",
+    "email": "ana@techfarma.com.br",
+    "whatsapp": "+55 11 99999-0000"
+  },
+  "perfil_negocio": {
+    "setor": "Tecnologia na Saúde (HealthTech)",
+    "subsetor": "Software para farmácias e drogarias",
+    "localizacao": "São Paulo, SP — atende Brasil todo",
+    "tamanho": "PME (50-200 funcionários)",
+    "tempo_mercado": "8 anos",
+    "modelo_negocio": "SaaS B2B — assinatura mensal por farmácia",
+    "clientes_atuais": "Redes de farmácia independentes e pequenas redes regionais",
+    "ticket_medio_cliente": "R$ 800/mês por unidade"
+  },
+  "produtos_e_servicos": [
+    {
+      "nome": "FarmaOS",
+      "tipo": "Software de Gestão",
+      "descricao": "ERP completo para farmácias: estoque, PDV, fiscal, CRM de clientes, gestão de receitas controladas"
+    },
+    {
+      "nome": "FarmaIA",
+      "tipo": "Módulo de IA",
+      "descricao": "Análise preditiva de estoque, sugestão automática de compras e detecção de padrões de consumo por perfil de cliente"
+    }
+  ],
+  "objetivos_2026": [
+    "Expandir para 500 novas farmácias até dezembro",
+    "Lançar módulo de telemedicina integrado ao software",
+    "Reduzir churn de 8% para 4% ao mês",
+    "Entrar no mercado de drogarias de médio porte"
+  ],
+  "dores_atuais": [
+    "Concorrência de grandes players (TOTVS, Linx) com mais recursos",
+    "Equipe técnica pequena para a velocidade de demanda",
+    "Clientes resistentes à adoção de IA no dia a dia",
+    "Regulação da ANVISA sempre mudando, alto custo de compliance"
+  ],
+  "nichos_mapeados_pelo_agente": [
+    "Tecnologia na Saúde",
+    "Regulação e ANVISA",
+    "IA aplicada ao varejo farmacêutico",
+    "Startups SaaS B2B Brasil",
+    "Transformação digital de PMEs",
+    "Telemedicina e saúde digital",
+    "Comportamento do consumidor brasileiro (saúde/bem-estar)"
+  ],
+  "historico_relatorios": [
+    {
+      "data": "05/03/2026 17:29",
+      "pasta": "clients/exemplo-cliente/reports/05032026",
+      "nichos_pesquisados": [
+        "Tecnologia na Saúde",
+        "Regulação e ANVISA",
+        "IA aplicada ao varejo farmacêutico",
+        "Startups SaaS B2B Brasil",
+        "Transformação digital de PMEs",
+        "Telemedicina e saúde digital",
+        "Comportamento do consumidor brasileiro (saúde/bem-estar)"
+      ],
+      "arquivos": [
+        "clients/exemplo-cliente/reports/05032026/Guilds_Intelligence_TechFarma_Solucoes_05032026.pdf",
+        "clients/exemplo-cliente/reports/05032026/Guilds_Briefing_TechFarma_Solucoes_05032026.pdf",
+        "clients/exemplo-cliente/reports/05032026/Guilds_WhatsApp_TechFarma_Solucoes_05032026.txt",
+        "clients/exemplo-cliente/reports/05032026/Guilds_Audio_TechFarma_Solucoes_05032026.mp3"
+      ]
+    }
+  ],
+  "preferencias_conteudo": {
+    "tom": "Técnico-executivo",
+    "profundidade": "Alta",
+    "foco_principal": "Oportunidades de produto e regulação",
+    "idioma": "Português Brasil"
+  }
+}

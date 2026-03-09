@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Imagem Instagram — Guilds Intelligence Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #e5e7eb; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; font-family: 'Inter', sans-serif; padding: 24px; gap: 20px; }
+    .hint { color: #6b7280; font-size: 13px; font-family: 'Inter', sans-serif; text-align: center; }
+    .slides-row { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+    .slide-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .slide-label { font-size: 12px; color: #6b7280; font-weight: 600; }
+
+    /* All slides 540×540 (half of 1080 for display, same ratio) */
+    .slide {
+      width: 540px; height: 540px;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ---- SLIDE 1 — HOOK ---- */
+    .s1 { background: #0F172A; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; text-align: center; }
+    .s1 .blob { position: absolute; border-radius: 50%; pointer-events: none; }
+    .s1 .blob1 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(99,102,241,0.5) 0%, transparent 70%); top: -80px; left: -60px; }
+    .s1 .blob2 { width: 250px; height: 250px; background: radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%); bottom: -60px; right: -40px; }
+    .s1-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 36px; position: relative; z-index: 2; }
+    .s1-logo-icon { width: 28px; height: 28px; background: #6366f1; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .s1-logo-icon svg { width: 16px; height: 16px; fill: white; }
+    .s1-logo-text { color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+    .s1-headline { font-size: 36px; font-weight: 900; color: #fff; line-height: 1.15; letter-spacing: -1px; position: relative; z-index: 2; }
+    .s1-headline span { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .s1-sub { font-size: 15px; color: rgba(255,255,255,0.45); margin-top: 16px; line-height: 1.5; position: relative; z-index: 2; }
+    .s1-divider { width: 40px; height: 3px; background: linear-gradient(90deg, #6366f1, #a855f7); border-radius: 999px; margin: 20px auto 0; position: relative; z-index: 2; }
+
+    /* ---- SLIDE 2 — PROBLEMA ---- */
+    .s2 { background: #fff; display: flex; flex-direction: column; padding: 44px; }
+    .s2-tag { font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+    .s2-title { font-size: 26px; font-weight: 900; color: #0F172A; line-height: 1.2; margin-bottom: 32px; }
+    .s2-items { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+    .s2-item { display: flex; align-items: flex-start; gap: 14px; }
+    .s2-num { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-weight: 800; }
+    .s2-item-text h4 { font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 4px; }
+    .s2-item-text p { font-size: 12px; color: #6b7280; line-height: 1.5; }
+    .s2-footer { margin-top: 24px; padding-top: 20px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
+    .s2-logo-sm { display: flex; align-items: center; gap: 6px; }
+    .s2-logo-sm .ico { width: 22px; height: 22px; background: #6366f1; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .s2-logo-sm .ico svg { width: 12px; height: 12px; fill: white; }
+    .s2-logo-sm span { font-size: 12px; font-weight: 700; color: #0F172A; }
+    .s2-slide-num { font-size: 11px; color: #d1d5db; font-weight: 600; }
+
+    /* ---- SLIDE 3 — SOLUÇÃO ---- */
+    .s3 { background: #0F172A; display: flex; flex-direction: column; padding: 44px; }
+    .s3-blob1 { position: absolute; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%); top: -60px; right: -40px; pointer-events: none; }
+    .s3-blob2 { position: absolute; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 70%); bottom: 20px; left: 20px; pointer-events: none; }
+    .s3-tag { font-size: 11px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; position: relative; z-index: 2; }
+    .s3-title { font-size: 28px; font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 28px; position: relative; z-index: 2; }
+    .s3-title span { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .s3-formats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; position: relative; z-index: 2; }
+    .s3-format { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; }
+    .s3-format-icon { font-size: 20px; margin-bottom: 6px; }
+    .s3-format-name { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .s3-format-desc { font-size: 10px; color: rgba(255,255,255,0.4); }
+    .s3-footer { margin-top: 20px; position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; }
+    .s3-logo-sm { display: flex; align-items: center; gap: 6px; }
+    .s3-logo-sm .ico { width: 22px; height: 22px; background: #6366f1; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .s3-logo-sm .ico svg { width: 12px; height: 12px; fill: white; }
+    .s3-logo-sm span { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); }
+    .s3-slide-num { font-size: 11px; color: rgba(255,255,255,0.2); font-weight: 600; }
+
+    /* ---- SLIDE 4 — CTA ---- */
+    .s4 { background: linear-gradient(145deg, #4338ca 0%, #7c3aed 60%, #9333ea 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; text-align: center; }
+    .s4-sup { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+    .s4-headline { font-size: 40px; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -1px; margin-bottom: 8px; }
+    .s4-sub { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.5; margin-bottom: 32px; }
+    .s4-price-box { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 20px 32px; margin-bottom: 28px; }
+    .s4-from { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+    .s4-price { font-size: 44px; font-weight: 900; color: #fff; letter-spacing: -2px; }
+    .s4-price span { font-size: 20px; font-weight: 600; }
+    .s4-price-note { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .s4-cta-badge { background: #fff; color: #6d28d9; font-size: 14px; font-weight: 800; padding: 14px 28px; border-radius: 14px; display: inline-flex; align-items: center; gap: 8px; }
+    .s4-bio { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 16px; }
+    .s4-logo { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 28px; }
+    .s4-logo .ico { width: 24px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .s4-logo .ico svg { width: 14px; height: 14px; fill: white; }
+    .s4-logo span { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); }
+  </style>
+</head>
+<body>
+
+<p class="hint">💡 Carrossel de 4 slides para Instagram (1080×1080px cada). Tire print de cada slide individualmente ou use Ctrl+P para exportar como PDF.</p>
+
+<div class="slides-row">
+
+  <!-- SLIDE 1 -->
+  <div class="slide-wrap">
+    <div class="slide s1">
+      <div class="blob blob1"></div>
+      <div class="blob blob2"></div>
+      <div class="s1-logo">
+        <div class="s1-logo-icon"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+        <span class="s1-logo-text">GUILDS INTELLIGENCE</span>
+      </div>
+      <h1 class="s1-headline">Founders que crescem<br/>mais rápido sabem de<br/><span>coisas que os outros</span><br/>não sabem.</h1>
+      <p class="s1-sub">Não é sorte. É informação. E ela chega antes.</p>
+      <div class="s1-divider"></div>
+    </div>
+    <span class="slide-label">Slide 1 — Hook</span>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="slide-wrap">
+    <div class="slide s2">
+      <span class="s2-tag">Você se identifica?</span>
+      <h2 class="s2-title">Soa familiar<br/>pra você?</h2>
+      <div class="s2-items">
+        <div class="s2-item">
+          <div class="s2-num" style="background:#eef2ff;color:#6366f1">💬</div>
+          <div class="s2-item-text">
+            <h4>"Eu deveria estar mais atualizado sobre o meu mercado..."</h4>
+            <p>Mas entre operar a empresa, liderar time e manter o produto vivo, não sobra espaço.</p>
+          </div>
+        </div>
+        <div class="s2-item">
+          <div class="s2-num" style="background:#fdf4ff;color:#a855f7">💬</div>
+          <div class="s2-item-text">
+            <h4>"Fico sabendo das tendências quando já é tarde demais."</h4>
+            <p>Você reage ao invés de se antecipar. Seus concorrentes agradecem.</p>
+          </div>
+        </div>
+        <div class="s2-item">
+          <div class="s2-num" style="background:#fff1f2;color:#f43f5e">💬</div>
+          <div class="s2-item-text">
+            <h4>"Entro em reuniões sem contexto suficiente."</h4>
+            <p>As decisões mais importantes do seu negócio são tomadas com informação incompleta.</p>
+          </div>
+        </div>
+      </div>
+      <div class="s2-footer">
+        <div class="s2-logo-sm">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+          <span>Guilds</span>
+        </div>
+        <span class="s2-slide-num">02 / 04</span>
+      </div>
+    </div>
+    <span class="slide-label">Slide 2 — Problema</span>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide-wrap">
+    <div class="slide s3">
+      <div class="s3-blob1"></div>
+      <div class="s3-blob2"></div>
+      <span class="s3-tag">O que muda</span>
+      <h2 class="s3-title">O que acontece quando<br/>você está sempre<br/><span>informado.</span></h2>
+      <div class="s3-formats">
+        <div class="s3-format">
+          <div class="s3-format-icon">🏆</div>
+          <div class="s3-format-name">Você chega na frente</div>
+          <div class="s3-format-desc">Antecipa movimentos do mercado antes da concorrência</div>
+        </div>
+        <div class="s3-format">
+          <div class="s3-format-icon">🎯</div>
+          <div class="s3-format-name">Decisões com contexto</div>
+          <div class="s3-format-desc">Nada de achismo — você sabe o que está acontecendo</div>
+        </div>
+        <div class="s3-format">
+          <div class="s3-format-icon">🎙️</div>
+          <div class="s3-format-name">Você vira referência</div>
+          <div class="s3-format-desc">Seja a pessoa mais bem informada do seu setor</div>
+        </div>
+        <div class="s3-format">
+          <div class="s3-format-icon">⚡</div>
+          <div class="s3-format-name">Zero horas gastas</div>
+          <div class="s3-format-desc">Nós monitoramos por você. Você só lê o que importa.</div>
+        </div>
+      </div>
+      <div class="s3-footer">
+        <div class="s3-logo-sm">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+          <span>Guilds</span>
+        </div>
+        <span class="s3-slide-num">03 / 04</span>
+      </div>
+    </div>
+    <span class="slide-label">Slide 3 — Solução</span>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide-wrap">
+    <div class="slide s4">
+      <p class="s4-sup">Oferta de lançamento</p>
+      <h2 class="s4-headline">Chegue na<br/>próxima reunião<br/>na frente.</h2>
+      <p class="s4-sub">Primeiro relatório grátis. Desconto exclusivo<br/>para quem entrar agora.</p>
+      <div class="s4-price-box">
+        <div class="s4-from">A partir de</div>
+        <div class="s4-price"><span>R$</span>247<span style="font-size:16px;font-weight:600">/mês</span></div>
+        <div class="s4-price-note">↓ era R$297 — desconto permanente</div>
+      </div>
+      <div class="s4-cta-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="2.5"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        Link na bio ↗
+      </div>
+      <p class="s4-bio">guilds.com.br/intelligence</p>
+      <div class="s4-logo">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+        <span>Guilds Intelligence Engine</span>
+      </div>
+    </div>
+    <span class="slide-label">Slide 4 — CTA</span>
+  </div>
+
+</div>
+
+<p class="hint">Cada slide: 540×540px exibido · exportar em 1080×1080px para Instagram · Resolução dobrada via CSS @2x ou screenshot em tela Retina</p>
+
+</body>
+</html>
