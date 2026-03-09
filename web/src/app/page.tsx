@@ -708,8 +708,8 @@ export default function LandingPage() {
             {[
               {
                 icon: Target,
-                title: "Nichos mapeados por IA",
-                desc: "Nossa IA identifica os nichos exatos que importam para o seu negócio.",
+                title: "Mapeamento cirúrgico",
+                desc: "Identificamos com precisão os nichos exatos que importam para o seu negócio.",
               },
               {
                 icon: Shield,
