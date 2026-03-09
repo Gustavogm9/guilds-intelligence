@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 import { trackEvent } from "@/lib/tracking";
 
 const plans = [
-    { value: "essencial", name: "Essencial", detail: "1 relatório por mês", price: "R$247/mês" },
-    { value: "crescimento", name: "Crescimento", detail: "2 relatórios por mês", price: "R$497/mês" },
-    { value: "profissional", name: "Profissional", detail: "4 relatórios por mês", price: "R$827/mês" },
-    { value: "studio", name: "Studio", detail: "12 relatórios por mês", price: "R$1.797/mês" },
-    { value: "enterprise", name: "Enterprise", detail: "~22 relatórios por mês", price: "R$3.497/mês" },
+    { value: "essencial", name: "Essencial", detail: "1 relatório/mês" },
+    { value: "crescimento", name: "Crescimento", detail: "2 relatórios/mês" },
+    { value: "profissional", name: "Profissional", detail: "4 relatórios/mês" },
+    { value: "studio", name: "Studio", detail: "12 relatórios/mês" },
+    { value: "enterprise", name: "Enterprise", detail: "~22 relatórios/mês" },
 ];
 
 export default function SignupPage() {
@@ -83,7 +83,7 @@ export default function SignupPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-            <Card className="w-full max-w-sm p-8">
+            <Card className="w-full max-w-md p-8">
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-extrabold">
                         <span className="text-primary">Guilds</span>
@@ -137,7 +137,7 @@ export default function SignupPage() {
                         >
                             {plans.map((p) => (
                                 <option key={p.value} value={p.value}>
-                                    {p.name} — {p.detail} ({p.price})
+                                    {p.name} — {p.detail}
                                 </option>
                             ))}
                         </select>
