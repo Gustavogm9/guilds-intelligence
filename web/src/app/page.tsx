@@ -772,7 +772,7 @@ export default function LandingPage() {
             {plans.map((plan, i) => (
               <Card
                 key={i}
-                className={`relative p-6 flex flex-col ${plan.popular
+                className={`relative p-6 flex flex-col overflow-visible ${plan.popular
                   ? "border-primary border-2 shadow-xl shadow-primary/10 scale-[1.02]"
                   : "border shadow-md"
                   }`}
