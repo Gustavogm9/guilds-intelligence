@@ -378,26 +378,19 @@ function LeadModal({
                   </div>
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-plan" className="text-xs">Plano de interesse</Label>
-                    <Select value={currentPlan} onValueChange={(val) => val && setCurrentPlan(val)} name="lead-plan">
-                      <SelectTrigger id="lead-plan" className="h-9">
-                        <span className="flex flex-1 text-left truncate">
-                          {(() => {
-                            const p = plans.find((x) => x.value === currentPlan);
-                            return p ? `${p.name} (${p.frequencyDetail || "1 relatório por mês"})` : "Selecione";
-                          })()}
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {plans.map((p) => {
-                          const freqText = p.frequencyDetail || "1 relatório por mês";
-                          return (
-                            <SelectItem key={p.value} value={p.value}>
-                              {p.name} ({freqText})
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                    <select
+                      id="lead-plan"
+                      name="lead-plan"
+                      value={currentPlan}
+                      onChange={(e) => setCurrentPlan(e.target.value)}
+                      className="flex h-9 w-full items-center rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+                    >
+                      {plans.map((p) => (
+                        <option key={p.value} value={p.value}>
+                          {p.name} — {p.frequencyDetail || "1 relatório por mês"}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <Button
                     type="submit"
