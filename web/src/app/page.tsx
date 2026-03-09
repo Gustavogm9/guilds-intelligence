@@ -380,7 +380,12 @@ function LeadModal({
                     <Label htmlFor="lead-plan" className="text-xs">Plano de interesse</Label>
                     <Select value={currentPlan} onValueChange={(val) => val && setCurrentPlan(val)} name="lead-plan">
                       <SelectTrigger id="lead-plan" className="h-9">
-                        <SelectValue placeholder="Selecione" />
+                        <span className="flex flex-1 text-left truncate">
+                          {(() => {
+                            const p = plans.find((x) => x.value === currentPlan);
+                            return p ? `${p.name} (${p.frequencyDetail || "1 relatório por mês"})` : "Selecione";
+                          })()}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {plans.map((p) => {
