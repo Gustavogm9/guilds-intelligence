@@ -854,7 +854,7 @@ export default function LandingPage() {
             ].map((t, i) => (
               <Card
                 key={i}
-                className="p-6 bg-background border shadow-md"
+                className="p-6 bg-background border shadow-md flex flex-col"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
@@ -864,10 +864,10 @@ export default function LandingPage() {
                     />
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed italic">
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed italic flex-1">
                   &ldquo;{t.quote}&rdquo;
                 </p>
-                <div>
+                <div className="mt-auto">
                   <p className="font-bold text-sm">{t.name}</p>
                   <p className="text-xs text-muted-foreground">{t.role}</p>
                 </div>
