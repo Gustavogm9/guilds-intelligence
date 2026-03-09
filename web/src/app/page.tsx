@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   FileText,
   Headphones,
@@ -16,8 +16,10 @@ import {
   Star,
   ChevronDown,
   Menu,
-  X,
+  X as XIcon,
   Sparkles,
+  Phone,
+  Play,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -97,10 +99,12 @@ const plans = [
     priceOriginal: "R$297",
     priceDiscount: "R$247",
     period: "/mês",
+    frequency: "Mensal",
+    frequencyDetail: "1 relatório por mês",
     features: [
-      "1 relatório/mês",
+      "1 relatório mensal",
       "PDF Completo + One Page",
-      "Copy WhatsApp",
+      "Copy para WhatsApp",
       "Nichos mapeados por IA",
     ],
     popular: false,
@@ -111,11 +115,13 @@ const plans = [
     priceOriginal: "R$597",
     priceDiscount: "R$497",
     period: "/mês",
+    frequency: "Quinzenal",
+    frequencyDetail: "2 relatórios por mês",
     features: [
-      "2 relatórios/mês",
+      "2 relatórios (quinzenal)",
       "Tudo do Essencial",
-      "Áudio MP3 briefing",
-      "Relatório narrado (10min)",
+      "Áudio MP3 com player in-app",
+      "Briefing narrado (~10min)",
     ],
     popular: false,
     value: "crescimento",
@@ -125,11 +131,13 @@ const plans = [
     priceOriginal: "R$997",
     priceDiscount: "R$827",
     period: "/mês",
+    frequency: "Semanal",
+    frequencyDetail: "4 relatórios por mês",
     features: [
-      "4 relatórios/mês",
+      "4 relatórios (semanal)",
       "Tudo do Crescimento",
       "Pack Social Media completo",
-      "8 cards + stories + copy",
+      "8 cards + stories + copy prontos",
     ],
     popular: true,
     value: "profissional",
@@ -139,10 +147,12 @@ const plans = [
     priceOriginal: "R$2.197",
     priceDiscount: "R$1.797",
     period: "/mês",
+    frequency: "3x por semana",
+    frequencyDetail: "12 relatórios por mês",
     features: [
-      "12 relatórios/mês",
-      "Todos os formatos",
-      "Até 3 empresas no plano",
+      "12 relatórios (3x/semana)",
+      "Todos os formatos inclusos",
+      "Até 3 empresas no mesmo plano",
       "Deep dives ilimitados",
     ],
     popular: false,
@@ -164,7 +174,7 @@ const faqs = [
   {
     question: "Quanto tempo leva para eu receber o relatório?",
     answer:
-      "O relatório é gerado em algumas horas após você enviar seu perfil. Você recebe uma notificação por email quando estiver pronto.",
+      "O relatório é gerado automaticamente na frequência do seu plano (diário, semanal, quinzenal ou mensal). Você recebe uma notificação no sistema e por email quando estiver pronto, e pode ouvir o áudio direto na plataforma.",
   },
   {
     question: "Posso cancelar quando quiser?",
@@ -175,6 +185,11 @@ const faqs = [
     question: "O desconto do grupo é permanente?",
     answer:
       "O desconto é aplicado enquanto você mantiver a assinatura ativa. Se cancelar e quiser voltar, pagará o preço público.",
+  },
+  {
+    question: "Como acesso os relatórios e áudios?",
+    answer:
+      "Todos os relatórios ficam no seu dashboard com acesso vitalício ao histórico completo. O áudio tem player integrado direto na plataforma — ouça sem baixar. Também é possível fazer download de PDFs, MP3s e Social Packs a qualquer momento.",
   },
   {
     question: "O Pack Social Media vem pronto para postar?",
@@ -188,93 +203,152 @@ const faqs = [
   },
 ];
 
-/* ─── Lead Form ─── */
-function LeadForm() {
+/* ─── Lead Capture Modal ─── */
+function LeadModal({
+  isOpen,
+  onClose,
+  selectedPlan = "profissional",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedPlan?: string;
+}) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    // Simula envio (será integrado com API route)
     await new Promise((r) => setTimeout(r, 1000));
     setLoading(false);
     setSubmitted(true);
   }
 
-  if (submitted) {
-    return (
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="flex flex-col items-center gap-4 py-8"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-        >
-          <CheckCircle2 className="h-16 w-16 text-green-500" />
-        </motion.div>
-        <h3 className="text-2xl font-bold">Dados enviados! 🎉</h3>
-        <p className="text-muted-foreground text-center max-w-sm">
-          Vamos entrar em contato em até 24h para configurar seu primeiro
-          relatório gratuito.
-        </p>
-      </motion.div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 w-full max-w-md">
-      <div className="grid gap-2">
-        <Label htmlFor="lead-name">Seu nome</Label>
-        <Input id="lead-name" placeholder="Gustavo Silva" required />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="lead-company">Nome da empresa</Label>
-        <Input id="lead-company" placeholder="TechFarma Soluções" required />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="lead-email">Email corporativo</Label>
-        <Input
-          id="lead-email"
-          type="email"
-          placeholder="gustavo@techfarma.com.br"
-          required
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="lead-phone">WhatsApp (opcional)</Label>
-        <Input id="lead-phone" placeholder="(11) 99999-9999" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="lead-plan">Plano de interesse</Label>
-        <Select defaultValue="profissional">
-          <SelectTrigger id="lead-plan">
-            <SelectValue placeholder="Selecione um plano" />
-          </SelectTrigger>
-          <SelectContent>
-            {plans.map((p) => (
-              <SelectItem key={p.value} value={p.value}>
-                {p.name} — {p.priceDiscount}/mês
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <Button
-        type="submit"
-        size="lg"
-        className="mt-2 text-base font-semibold"
-        disabled={loading}
-      >
-        {loading ? "Enviando..." : "Quero meu primeiro relatório grátis →"}
-      </Button>
-      <p className="text-xs text-muted-foreground text-center">
-        Sem cartão necessário · Só cobrado a partir do 2º mês
-      </p>
-    </form>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        >
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="relative bg-background rounded-2xl shadow-2xl w-full max-w-md p-8 border border-border z-10"
+          >
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <XIcon className="h-5 w-5" />
+            </button>
+
+            {submitted ? (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex flex-col items-center gap-4 py-4"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                >
+                  <CheckCircle2 className="h-16 w-16 text-green-500" />
+                </motion.div>
+                <h3 className="text-2xl font-bold">Dados enviados! 🎉</h3>
+                <p className="text-muted-foreground text-center max-w-sm">
+                  Vamos configurar seu acesso em até 24h.
+                  Você receberá um email para completar seu perfil e receber o
+                  primeiro relatório gratuitamente.
+                </p>
+                <Button onClick={onClose} variant="outline" className="mt-2">
+                  Fechar
+                </Button>
+              </motion.div>
+            ) : (
+              <>
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+                    <Sparkles className="h-3 w-3" />
+                    1º relatório grátis
+                  </div>
+                  <h2 className="text-xl font-bold">
+                    Comece sua inteligência de mercado
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Preencha seus dados e receba acesso à plataforma
+                  </p>
+                </div>
+                <form onSubmit={handleSubmit} className="grid gap-3">
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="lead-name" className="text-xs">Seu nome</Label>
+                    <Input id="lead-name" placeholder="Gustavo Silva" required className="h-9" />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="lead-company" className="text-xs">Nome da empresa</Label>
+                    <Input id="lead-company" placeholder="TechFarma Soluções" required className="h-9" />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="lead-email" className="text-xs">Email corporativo</Label>
+                    <Input
+                      id="lead-email"
+                      type="email"
+                      placeholder="gustavo@techfarma.com.br"
+                      required
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="lead-phone" className="text-xs">WhatsApp</Label>
+                    <Input id="lead-phone" placeholder="(11) 99999-9999" className="h-9" />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="lead-plan" className="text-xs">Plano de interesse</Label>
+                    <Select defaultValue={selectedPlan}>
+                      <SelectTrigger id="lead-plan" className="h-9">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {plans.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.name} — {p.priceDiscount}/mês ({p.frequency})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="mt-1 text-sm font-semibold h-10"
+                    disabled={loading}
+                  >
+                    {loading ? "Enviando..." : "Quero meu primeiro relatório grátis →"}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    Sem cartão necessário · Só cobrado a partir do 2º mês
+                  </p>
+                </form>
+              </>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -282,6 +356,8 @@ function LeadForm() {
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalPlan, setModalPlan] = useState("profissional");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -289,8 +365,20 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  function openModal(plan = "profissional") {
+    setModalPlan(plan);
+    setModalOpen(true);
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Lead Capture Modal */}
+      <LeadModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        selectedPlan={modalPlan}
+      />
+
       {/* ─── 1. HEADER ─── */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
@@ -327,18 +415,20 @@ export default function LandingPage() {
             >
               FAQ
             </a>
-            <a href="#comecar" className={buttonVariants({ size: "sm" })}>
+            <button
+              onClick={() => openModal()}
+              className={buttonVariants({ size: "sm", className: "px-5" })}
+            >
               Começar grátis →
-            </a>
+            </button>
           </nav>
           <button
             className="md:hidden p-2"
             onClick={() => setMobileMenu(!mobileMenu)}
           >
-            {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileMenu ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
-        {/* Mobile menu */}
         {mobileMenu && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -349,7 +439,12 @@ export default function LandingPage() {
             <a href="#formatos" className="text-sm py-2" onClick={() => setMobileMenu(false)}>Formatos</a>
             <a href="#planos" className="text-sm py-2" onClick={() => setMobileMenu(false)}>Planos</a>
             <a href="#faq" className="text-sm py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
-            <a href="#comecar" className={buttonVariants({ size: "sm" })}>Começar grátis →</a>
+            <button
+              onClick={() => { setMobileMenu(false); openModal(); }}
+              className={buttonVariants({ size: "sm" })}
+            >
+              Começar grátis →
+            </button>
           </motion.div>
         )}
       </header>
@@ -372,7 +467,7 @@ export default function LandingPage() {
             transition={{ delay: 0.2 }}
             className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6"
           >
-            Seu mercado muda todo mês.
+            Seu mercado muda todo dia.
             <br />
             <span className="text-primary">Você acompanha?</span>
           </motion.h1>
@@ -382,10 +477,10 @@ export default function LandingPage() {
             transition={{ delay: 0.3 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Receba todo mês um relatório de inteligência de mercado
-            personalizado para o <strong>seu</strong> setor, <strong>seus</strong>{" "}
-            produtos e <strong>suas</strong> dores — gerado por IA, entregue em
-            PDF, áudio, WhatsApp e social media.
+            Relatórios de inteligência de mercado personalizados para o{" "}
+            <strong>seu</strong> setor — entregues na frequência que você
+            escolher: <strong>semanal, quinzenal ou mensal</strong>. Gerado por
+            IA, em PDF, áudio, WhatsApp e social media.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -393,13 +488,16 @@ export default function LandingPage() {
             transition={{ delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <a href="#comecar" className={buttonVariants({ size: "lg", className: "text-base font-semibold px-8" })}>
+            <button
+              onClick={() => openModal()}
+              className={buttonVariants({ size: "lg", className: "text-base font-semibold px-8 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all" })}
+            >
               Começar com 1 relatório grátis
               <ArrowRight className="ml-2 h-5 w-5" />
-            </a>
+            </button>
             <a
               href="#como-funciona"
-              className={buttonVariants({ variant: "outline", size: "lg", className: "text-base" })}
+              className={buttonVariants({ variant: "outline", size: "lg", className: "text-base border-2" })}
             >
               Como funciona
             </a>
@@ -410,36 +508,40 @@ export default function LandingPage() {
       {/* ─── 3. DOR / PROBLEMA ─── */}
       <Section className="py-20 px-4 bg-muted/50" id="problema">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
             Você sabe que deveria acompanhar o mercado.
-            <br />
-            <span className="text-muted-foreground font-normal text-2xl sm:text-3xl">
-              Mas quando foi a última vez que fez isso de verdade?
-            </span>
           </h2>
+          <p className="text-xl text-muted-foreground text-center mb-12">
+            Mas quando foi a última vez que fez isso de verdade?
+          </p>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
                 icon: Target,
                 title: "Decisões no escuro",
                 desc: "Você toma decisões importantes sem visibilidade real do que está acontecendo no mercado.",
+                gradient: "from-blue-500/10 to-indigo-500/10",
               },
               {
                 icon: TrendingUp,
                 title: "Concorrentes na frente",
                 desc: "Enquanto você foca na operação, seu concorrente já viu a tendência e se posicionou.",
+                gradient: "from-violet-500/10 to-purple-500/10",
               },
               {
                 icon: Zap,
                 title: "Sem tempo nem equipe",
                 desc: "Você sabe que deveria pesquisar, mas não tem tempo nem gente sobrando para isso.",
+                gradient: "from-amber-500/10 to-orange-500/10",
               },
             ].map((item, i) => (
               <Card
                 key={i}
-                className="p-6 bg-background border-none shadow-lg hover:shadow-xl transition-shadow"
+                className={`p-6 bg-gradient-to-br ${item.gradient} border shadow-md hover:shadow-lg transition-all hover:-translate-y-1`}
               >
-                <item.icon className="h-10 w-10 text-primary mb-4" />
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <item.icon className="h-6 w-6 text-primary" />
+                </div>
                 <h3 className="text-lg font-bold mb-2">{item.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {item.desc}
@@ -479,11 +581,14 @@ export default function LandingPage() {
               {
                 step: "04",
                 title: "Entrega",
-                desc: "Relatório personalizado entregue em múltiplos formatos na sua área.",
+                desc: "Relatório personalizado entregue na frequência do seu plano.",
               },
             ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary font-bold text-xl flex items-center justify-center mx-auto mb-4">
+              <div key={i} className="text-center relative">
+                {i < 3 && (
+                  <div className="hidden md:block absolute top-7 left-[60%] w-[80%] h-px bg-border" />
+                )}
+                <div className="w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-bold text-xl flex items-center justify-center mx-auto mb-4 relative z-10">
                   {item.step}
                 </div>
                 <h3 className="font-bold text-lg mb-2">{item.title}</h3>
@@ -503,7 +608,7 @@ export default function LandingPage() {
             5 formatos. Uma mesma inteligência.
           </h2>
           <p className="text-muted-foreground text-center mb-14 text-lg">
-            Consuma seus insights como preferir.
+            Consuma seus insights como preferir — tudo direto na plataforma.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {[
@@ -511,33 +616,40 @@ export default function LandingPage() {
                 icon: FileText,
                 title: "PDF Completo",
                 desc: "Relatório aprofundado com análise de tendências, oportunidades e alertas.",
+                highlight: false,
               },
               {
                 icon: FileText,
                 title: "PDF One Page",
                 desc: "Versão executiva de 1 página para compartilhar com o time.",
+                highlight: false,
               },
               {
-                icon: Headphones,
+                icon: Play,
                 title: "Áudio MP3",
-                desc: "Briefing narrado de ~10 min para ouvir no carro ou na academia.",
+                desc: "Ouça direto na plataforma ou baixe. Briefing narrado de ~10 min.",
+                highlight: true,
               },
               {
                 icon: MessageSquare,
                 title: "WhatsApp",
                 desc: "Texto pronto para enviar para o time ou usar em reuniões.",
+                highlight: false,
               },
               {
                 icon: ImageIcon,
                 title: "Social Media",
                 desc: "8 cards + stories + copy prontos para Instagram e LinkedIn.",
+                highlight: false,
               },
             ].map((item, i) => (
               <Card
                 key={i}
-                className="p-5 bg-background border-none shadow-md hover:shadow-lg transition-all hover:-translate-y-1"
+                className={`p-5 border shadow-md hover:shadow-lg transition-all hover:-translate-y-1 ${item.highlight ? "bg-primary/5 border-primary/30" : "bg-background"}`}
               >
-                <item.icon className="h-8 w-8 text-primary mb-3" />
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 ${item.highlight ? "bg-primary/15" : "bg-muted"}`}>
+                  <item.icon className={`h-5 w-5 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
+                </div>
                 <h3 className="font-bold text-sm mb-1">{item.title}</h3>
                 <p className="text-muted-foreground text-xs leading-relaxed">
                   {item.desc}
@@ -556,8 +668,8 @@ export default function LandingPage() {
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
             O relatório de uma HealthTech é completamente diferente do de uma
-            agência de marketing. Cada insight, cada recomendação e cada alerta
-            é personalizado para o seu setor, seus produtos e suas dores.
+            agência de marketing. Cada insight é personalizado para o seu
+            setor, seus produtos e suas dores.
           </p>
           <div className="grid sm:grid-cols-3 gap-6 text-left">
             {[
@@ -577,8 +689,10 @@ export default function LandingPage() {
                 desc: "Não só tendências — recomendações concretas de como agir.",
               },
             ].map((item, i) => (
-              <Card key={i} className="p-6 border shadow-none">
-                <item.icon className="h-8 w-8 text-primary mb-3" />
+              <Card key={i} className="p-6 border shadow-sm hover:shadow-md transition-all">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                  <item.icon className="h-5 w-5 text-primary" />
+                </div>
                 <h3 className="font-bold mb-2">{item.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {item.desc}
@@ -604,7 +718,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap gap-4 justify-center text-sm font-medium">
             {["🎁 1º relatório grátis", "💰 Desconto de grupo", "🔒 Cancele quando quiser"].map((t, i) => (
-              <span key={i} className="bg-white/15 backdrop-blur-sm rounded-full px-5 py-2">
+              <span key={i} className="bg-white/15 backdrop-blur-sm rounded-full px-5 py-2.5">
                 {t}
               </span>
             ))}
@@ -626,16 +740,19 @@ export default function LandingPage() {
               <Card
                 key={i}
                 className={`relative p-6 flex flex-col ${plan.popular
-                  ? "border-primary shadow-xl shadow-primary/10 scale-[1.02]"
+                  ? "border-primary border-2 shadow-xl shadow-primary/10 scale-[1.02]"
                   : "border shadow-md"
                   }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-full">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
                     MAIS ESCOLHIDO
                   </span>
                 )}
                 <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
+                <span className="text-xs font-medium text-primary bg-primary/10 rounded-full px-2.5 py-0.5 w-fit mb-3">
+                  {plan.frequency}
+                </span>
                 <div className="mb-4">
                   <span className="text-sm text-muted-foreground line-through">
                     {plan.priceOriginal}
@@ -660,12 +777,15 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="#comecar"
-                  className={buttonVariants({ variant: plan.popular ? "default" : "outline", className: "w-full" })}
+                <button
+                  onClick={() => openModal(plan.value)}
+                  className={buttonVariants({
+                    variant: plan.popular ? "default" : "outline",
+                    className: `w-full ${plan.popular ? "shadow-md" : ""}`,
+                  })}
                 >
                   Começar grátis
-                </a>
+                </button>
               </Card>
             ))}
           </div>
@@ -688,20 +808,20 @@ export default function LandingPage() {
               },
               {
                 quote:
-                  "O pack de social media sozinho já vale o plano. Saem 8 posts prontos todo mês.",
+                  "O pack de social media sozinho já vale o plano. Saem 8 posts prontos toda semana.",
                 name: "Ana P.",
                 role: "Diretora de Marketing",
               },
               {
                 quote:
-                  "O áudio de 10 minutos no carro virou parte da minha rotina. Informação que importa, sem enrolação.",
+                  "O áudio no carro virou rotina. Informação que importa, sem enrolação — ouço direto na plataforma.",
                 name: "Roberto S.",
                 role: "Sócio-fundador",
               },
             ].map((t, i) => (
               <Card
                 key={i}
-                className="p-6 bg-background border-none shadow-md"
+                className="p-6 bg-background border shadow-md"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
@@ -736,7 +856,7 @@ export default function LandingPage() {
         </div>
       </Section>
 
-      {/* ─── 11. CTA FINAL / FORMULÁRIO ─── */}
+      {/* ─── 11. CTA FINAL ─── */}
       <Section
         className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-primary/10"
         id="comecar"
@@ -745,34 +865,65 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             Vagas limitadas para o grupo.
           </h2>
-          <p className="text-muted-foreground mb-10 leading-relaxed max-w-md">
+          <p className="text-muted-foreground mb-8 leading-relaxed max-w-md">
             Membros que entrarem agora garantem o desconto permanente e acesso
             prioritário a todos os novos formatos.
           </p>
-          <LeadForm />
+          <button
+            onClick={() => openModal()}
+            className={buttonVariants({ size: "lg", className: "text-base font-semibold px-10 shadow-lg shadow-primary/25" })}
+          >
+            Começar com 1 relatório grátis
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </button>
+          <p className="text-xs text-muted-foreground mt-4">
+            Sem cartão necessário · Só cobrado a partir do 2º mês
+          </p>
         </div>
       </Section>
 
       {/* ─── 12. FOOTER ─── */}
-      <footer className="border-t border-border py-10 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-lg font-extrabold">
-            <span className="text-primary">Guilds</span>
-          </span>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <a href="https://guilds.com.br" className="hover:text-foreground transition-colors">
-              guilds.com.br
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Política de Privacidade
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Termos de Uso
-            </a>
+      <footer className="border-t border-border py-12 px-4 bg-card">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <span className="text-xl font-extrabold">
+                <span className="text-primary">Guilds</span>
+              </span>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xs">
+                Inteligência de mercado personalizada por IA.
+                Relatórios entregues na frequência que você precisar.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm mb-3">Links rápidos</h4>
+              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <a href="#como-funciona" className="hover:text-foreground transition-colors">Como funciona</a>
+                <a href="#formatos" className="hover:text-foreground transition-colors">Formatos</a>
+                <a href="#planos" className="hover:text-foreground transition-colors">Planos e preços</a>
+                <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold text-sm mb-3">Contato</h4>
+              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <a href="https://guilds.com.br" className="hover:text-foreground transition-colors">guilds.com.br</a>
+                <a href="https://wa.me/5511999999999" className="hover:text-foreground transition-colors flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5" />
+                  WhatsApp
+                </a>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            © 2026 Guilds. Todos os direitos reservados.
-          </p>
+          <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">
+              © 2026 Guilds. Todos os direitos reservados.
+            </p>
+            <div className="flex gap-6 text-xs text-muted-foreground">
+              <a href="#" className="hover:text-foreground transition-colors">Política de Privacidade</a>
+              <a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a>
+            </div>
+          </div>
         </div>
       </footer>
 
@@ -781,10 +932,12 @@ export default function LandingPage() {
         href="https://wa.me/5511999999999?text=Oi%20Gustavo!%20Vi%20o%20Intelligence%20Engine%20e%20quero%20saber%20mais."
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110"
+        className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20BD5A] text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110"
         aria-label="Falar pelo WhatsApp"
       >
-        <MessageSquare className="h-6 w-6" />
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
       </a>
     </div>
   );
