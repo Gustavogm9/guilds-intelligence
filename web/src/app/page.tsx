@@ -638,10 +638,10 @@ export default function LandingPage() {
       <Section className="py-20 px-4 bg-muted/50" id="formatos">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
-            5 formatos. Uma mesma inteligência.
+            5 formatos. A mesma visão estratégica.
           </h2>
           <p className="text-muted-foreground text-center mb-14 text-lg">
-            Consuma seus insights como preferir — tudo direto na plataforma.
+            Acesse as análises do seu mercado como e onde preferir.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {[
