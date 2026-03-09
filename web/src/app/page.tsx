@@ -232,6 +232,14 @@ function LeadModal({
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(selectedPlan);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPlan(selectedPlan);
+      setSubmitted(false);
+    }
+  }, [isOpen, selectedPlan]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -370,7 +378,7 @@ function LeadModal({
                   </div>
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-plan" className="text-xs">Plano de interesse</Label>
-                    <Select defaultValue={selectedPlan} name="lead-plan">
+                    <Select value={currentPlan} onValueChange={(val) => val && setCurrentPlan(val)} name="lead-plan">
                       <SelectTrigger id="lead-plan" className="h-9">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
