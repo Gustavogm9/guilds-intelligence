@@ -330,16 +330,17 @@ function LeadModal({
                 <form onSubmit={handleSubmit} className="grid gap-3">
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-name" className="text-xs">Seu nome</Label>
-                    <Input id="lead-name" placeholder="Gustavo Silva" required className="h-9" />
+                    <Input id="lead-name" name="lead-name" placeholder="Gustavo Silva" required className="h-9" />
                   </div>
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-company" className="text-xs">Nome da empresa</Label>
-                    <Input id="lead-company" placeholder="TechFarma Soluções" required className="h-9" />
+                    <Input id="lead-company" name="lead-company" placeholder="TechFarma Soluções" required className="h-9" />
                   </div>
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-email" className="text-xs">Email corporativo</Label>
                     <Input
                       id="lead-email"
+                      name="lead-email"
                       type="email"
                       placeholder="gustavo@techfarma.com.br"
                       required
@@ -348,20 +349,40 @@ function LeadModal({
                   </div>
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-phone" className="text-xs">WhatsApp</Label>
-                    <Input id="lead-phone" placeholder="(11) 99999-9999" className="h-9" />
+                    <Input
+                      id="lead-phone"
+                      name="lead-phone"
+                      type="tel"
+                      required
+                      minLength={14}
+                      maxLength={15}
+                      placeholder="(11) 99999-9999"
+                      className="h-9"
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/\D/g, "");
+                        if (v.length <= 11) {
+                          v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+                          v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+                          e.target.value = v;
+                        }
+                      }}
+                    />
                   </div>
                   <div className="grid gap-1.5">
                     <Label htmlFor="lead-plan" className="text-xs">Plano de interesse</Label>
-                    <Select defaultValue={selectedPlan}>
+                    <Select defaultValue={selectedPlan} name="lead-plan">
                       <SelectTrigger id="lead-plan" className="h-9">
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        {plans.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.name} — {p.priceDiscount}/mês ({p.frequency})
-                          </SelectItem>
-                        ))}
+                        {plans.map((p) => {
+                          const freqText = p.frequencyDetail || "1 relatório por mês";
+                          return (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.name} ({freqText})
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
