@@ -924,8 +924,8 @@ export default function LandingPage() {
                 <span className="text-primary">Guilds</span>
               </span>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs">
-                Inteligência de mercado personalizada por IA.
-                Relatórios entregues na frequência que você precisar.
+                Inteligência de mercado e relatórios estratégicos entregues
+                na frequência que a sua empresa precisar.
               </p>
             </div>
             <div>
@@ -950,7 +950,10 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              © 2026 Guilds. Todos os direitos reservados.
+              © 2026 Guilds. Todos os direitos reservados. Feito por{" "}
+              <a href="https://guilds.com.br" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-foreground">
+                Guilds
+              </a>.
             </p>
             <div className="flex gap-6 text-xs text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Política de Privacidade</a>
@@ -962,7 +965,7 @@ export default function LandingPage() {
 
       {/* ─── WhatsApp Float Button ─── */}
       <a
-        href="https://wa.me/5511999999999?text=Oi%20Gustavo!%20Vi%20o%20Intelligence%20Engine%20e%20quero%20saber%20mais."
+        href="https://wa.me/5517997520867?text=Oi%20Gustavo!%20Vi%20o%20Intelligence%20Engine%20e%20quero%20saber%20mais."
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20BD5A] text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110"
