@@ -158,6 +158,23 @@ const plans = [
     popular: false,
     value: "studio",
   },
+  {
+    name: "Enterprise",
+    priceOriginal: "R$4.297",
+    priceDiscount: "R$3.497",
+    period: "/mês",
+    frequency: "Dias úteis",
+    frequencyDetail: "~22 relatórios por mês",
+    features: [
+      "Relatório todo dia útil",
+      "Todos os formatos inclusos",
+      "Até 5 empresas no mesmo plano",
+      "Deep dives ilimitados",
+      "15 nichos mapeados",
+    ],
+    popular: false,
+    value: "enterprise",
+  },
 ];
 
 const faqs = [
@@ -735,7 +752,7 @@ export default function LandingPage() {
           <p className="text-muted-foreground text-center mb-12 text-lg">
             Preços especiais para membros do grupo. Permanentes.
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {plans.map((plan, i) => (
               <Card
                 key={i}
