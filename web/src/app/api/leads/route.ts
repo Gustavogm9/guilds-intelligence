@@ -22,12 +22,6 @@ export async function POST(request: Request) {
             .eq("name", plan || "Profissional")
             .single();
 
-        // Criar invite de auth
-        const { data: authData, error: authError } =
-            await supabase.auth.admin.inviteUserByEmail(email, {
-                data: { full_name: name },
-            });
-
         // Registrar como client (se não existir)
         const { error: clientError } = await supabase.from("clients").upsert(
             {
@@ -36,7 +30,6 @@ export async function POST(request: Request) {
                 contact_email: email,
                 contact_phone: phone || null,
                 plan_id: planData?.id,
-                user_id: authData?.user?.id || null,
                 is_active: true,
             },
             { onConflict: "contact_email" }
@@ -44,14 +37,11 @@ export async function POST(request: Request) {
 
         if (clientError) {
             console.error("Error creating client lead:", clientError);
-            // Se não conseguiu criar o client, tenta apenas inserir como lead simples
-            // O admin pode associar manualmente depois
         }
 
         return NextResponse.json({
             success: true,
             message: "Lead registrado com sucesso",
-            invited: !authError,
         });
     } catch (error) {
         console.error("Lead API error:", error);
