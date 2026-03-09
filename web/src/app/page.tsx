@@ -511,9 +511,9 @@ export default function LandingPage() {
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
             Relatórios de inteligência de mercado personalizados para o{" "}
-            <strong>seu</strong> setor — entregues na frequência que você
-            escolher: <strong>semanal, quinzenal ou mensal</strong>. Gerado por
-            IA, em PDF, áudio, WhatsApp e social media.
+            <strong>seu</strong> setor — entregues na frequência que sua empresa
+            precisa: <strong>do diário ao mensal</strong>. Insights prontos
+            para ação em PDF, áudio curto, resumos via WhatsApp e posts de social media.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -604,12 +604,12 @@ export default function LandingPage() {
               {
                 step: "02",
                 title: "Mapeamento",
-                desc: "A IA mapeia os nichos de mercado mais relevantes para o seu negócio.",
+                desc: "Mapeamos os nichos de mercado, concorrentes e fontes mais relevantes para o seu negócio.",
               },
               {
                 step: "03",
                 title: "Pesquisa",
-                desc: "Agentes de IA pesquisam notícias, tendências e movimentos do mercado.",
+                desc: "Monitoramos continuamente notícias, tendências e movimentações estratégicas do seu setor.",
               },
               {
                 step: "04",
