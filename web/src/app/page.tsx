@@ -247,6 +247,7 @@ function LeadModal({
     setLoading(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const leadName = formData.get("lead-name") as string;
     const email = formData.get("lead-email") as string;
     const plan = formData.get("lead-plan") as string || currentPlan;
     try {
@@ -254,7 +255,7 @@ function LeadModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.get("lead-name"),
+          name: leadName,
           company: formData.get("lead-company"),
           email,
           phone: formData.get("lead-phone"),
@@ -269,13 +270,12 @@ function LeadModal({
     trackEvent("lead_submit", { plan, email });
     // Redireciona para signup após 3 segundos
     setTimeout(() => {
-      window.location.href = `/signup?plan=${encodeURIComponent(plan)}&email=${encodeURIComponent(email)}`;
+      window.location.href = `/signup?plan=${encodeURIComponent(plan)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(leadName)}`;
     }, 3000);
   }
 
   function goToSignup() {
-    const plan = currentPlan;
-    window.location.href = `/signup?plan=${encodeURIComponent(plan)}`;
+    window.location.href = `/signup?plan=${encodeURIComponent(currentPlan)}`;
   }
 
   return (
