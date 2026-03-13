@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * Utilitário de tracking interno de funil.
- * Dispara eventos para a API /api/track que salva no Supabase.
- *
- * Eventos suportados:
- *  - landing_view: visitou a landing page
- *  - modal_open: abriu o modal de lead capture
- *  - lead_submit: preencheu e enviou o modal
- *  - signup_complete: completou o signup
- *  - onboarding_complete: completou o onboarding
- *  - first_report_view: visualizou o primeiro relatório
- */
-
-// Gera ou recupera um session ID anônimo persistido por sessão do browser
 function getSessionId(): string {
     if (typeof window === "undefined") return "ssr";
     let sid = sessionStorage.getItem("gi_session_id");
@@ -30,14 +16,29 @@ export type FunnelEvent =
     | "lead_submit"
     | "signup_complete"
     | "onboarding_complete"
+    | "dashboard_return"
+    | "inbox_view"
     | "first_report_view"
-    | "login";
+    | "report_view"
+    | "report_download"
+    | "audio_play"
+    | "deep_dive_requested"
+    | "login"
+    | "scheduler_run"
+    | "report_generation_triggered"
+    | "report_generation_failed"
+    | "report_retry_triggered"
+    | "report_auto_recovery_triggered"
+    | "whatsapp_message_received"
+    | "whatsapp_command_processed"
+    | "whatsapp_deep_dive_requested"
+    | "schedule_preferences_saved"
+    | "report_generated_on_demand";
 
 export function trackEvent(
     eventType: FunnelEvent,
     metadata?: Record<string, unknown>
 ) {
-    // Fire-and-forget: não bloqueia a UI
     try {
         const payload = {
             event_type: eventType,
@@ -50,7 +51,6 @@ export function trackEvent(
             },
         };
 
-        // Usa sendBeacon quando disponível (não bloqueia navegação)
         if (typeof navigator !== "undefined" && navigator.sendBeacon) {
             navigator.sendBeacon(
                 "/api/track",
@@ -63,10 +63,10 @@ export function trackEvent(
                 body: JSON.stringify(payload),
                 keepalive: true,
             }).catch(() => {
-                // Silencioso — tracking não deve quebrar a experiência do usuário
+                // tracking nunca deve quebrar a experiencia
             });
         }
     } catch {
-        // Silencioso
+        // silencioso
     }
 }

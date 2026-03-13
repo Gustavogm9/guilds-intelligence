@@ -2,6 +2,9 @@
 -- GUILDS INTELLIGENCE ENGINE — Supabase Database Schema
 -- Versão 1.0 · Março 2026
 -- Aplicar via: supabase/migrations/001_initial_schema.sql
+-- Este arquivo representa o baseline documental do schema.
+-- O estado operacional real depende tambem das migrations em /migrations.
+-- Ver tambem: docs/SCHEMA_COMPATIBILITY_MATRIX_2026-03-12.md
 -- ============================================================
 
 -- Habilitar extensões necessárias

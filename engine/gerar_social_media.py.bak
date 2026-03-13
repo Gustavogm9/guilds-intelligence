@@ -1,0 +1,621 @@
+#!/usr/bin/env python3
+"""
+Guilds Social Media Generator
+Generates ready-to-use feed cards, stories, and copy files.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFont
+
+
+FONT_DIR = Path("/usr/share/fonts/truetype/lato")
+F_BLACK = str(FONT_DIR / "Lato-Black.ttf")
+F_BOLD = str(FONT_DIR / "Lato-Bold.ttf")
+F_REGULAR = str(FONT_DIR / "Lato-Regular.ttf")
+F_LIGHT = str(FONT_DIR / "Lato-Light.ttf")
+
+PRETO = (13, 13, 13)
+LARANJA = (255, 107, 0)
+BRANCO = (255, 255, 255)
+CINZA = (180, 180, 180)
+CINZA_ESC = (80, 80, 80)
+VERDE = (0, 180, 80)
+VERMELHO = (220, 40, 40)
+
+CATEGORIA_CORES = {
+    "technology": LARANJA,
+    "business": (100, 180, 255),
+    "alert": VERMELHO,
+    "opportunity": VERDE,
+    "trend": (180, 100, 255),
+    "market": (255, 200, 0),
+    "education": (0, 200, 180),
+    "tecnologia": LARANJA,
+    "negocios": (100, 180, 255),
+    "alerta": VERMELHO,
+    "oportunidade": VERDE,
+    "tendencia": (180, 100, 255),
+    "mercado": (255, 200, 0),
+    "educacao": (0, 200, 180),
+    "padrao": LARANJA,
+}
+
+DATE_STR = datetime.now().strftime("%d/%m/%Y")
+
+
+def get_client_locale(client: dict) -> str:
+    idioma = (
+        client.get("preferencias_conteudo", {}).get("idioma")
+        or client.get("preferred_language")
+        or "pt-BR"
+    )
+    return "en-US" if str(idioma).lower().startswith("en") else "pt-BR"
+
+
+def is_english_client(client: dict) -> bool:
+    return get_client_locale(client) == "en-US"
+
+
+def tr(client: dict, pt_text: str, en_text: str) -> str:
+    return en_text if is_english_client(client) else pt_text
+
+
+def build_social_copy(client: dict) -> dict[str, str]:
+    return {
+        "greeting": tr(client, "GUILDS INTELLIGENCE", "GUILDS INTELLIGENCE"),
+        "action_label": "ACTION",
+        "source_label": tr(client, "Fonte", "Source"),
+        "for_label": tr(client, "Para", "For"),
+        "report_for": tr(client, "Relatorio personalizado para", "Custom report for"),
+        "market_title": tr(client, "Inteligencia de Mercado", "Market Intelligence"),
+        "story_title": tr(client, "Insights do Dia", "Today's Insights"),
+        "cover_subtitle": tr(client, "Insights estrategicos para", "Strategic insights for"),
+        "opportunity_type": tr(client, "Oportunidade", "Opportunity"),
+        "alert_type": tr(client, "Alerta", "Alert"),
+        "opportunity_title": tr(client, "Oportunidade Identificada", "Opportunity Identified"),
+        "alert_title": tr(client, "Ponto de Atencao", "Point of Attention"),
+        "copies_title": tr(client, "COPIES PARA SOCIAL MEDIA", "SOCIAL MEDIA COPY"),
+        "client_label": tr(client, "Cliente", "Client"),
+        "date_label": tr(client, "Data", "Date"),
+        "feed_cover_title": tr(client, "INSTAGRAM FEED - CAPA DO CARROSSEL", "INSTAGRAM FEED - CAROUSEL COVER"),
+        "feed_card_title": tr(client, "INSTAGRAM FEED - CARD", "INSTAGRAM FEED - CARD"),
+        "cover_caption_label": tr(client, "LEGENDA DA CAPA:", "COVER CAPTION:"),
+        "caption_label": tr(client, "LEGENDA:", "CAPTION:"),
+        "cover_caption_line_1": tr(client, "Inteligencia de mercado do dia", "Today's market intelligence"),
+        "cover_caption_line_2": tr(client, "o que esta movimentando", "what is moving"),
+        "cover_caption_line_3": tr(client, "hoje e como isso impacta", "today and how it impacts"),
+        "drag_hint": tr(client, "Arraste para ver os 5 principais insights", "Swipe to see the 5 main insights"),
+        "what_to_do": tr(client, "O que fazer", "What to do"),
+        "opportunity_caption": tr(client, "Oportunidade identificada hoje para", "Today's opportunity for"),
+        "opportunity_cta": tr(client, "Quer saber como aproveitar? Fale com a Guilds", "Want to act on it? Talk to Guilds"),
+        "alert_caption": tr(client, "Ponto de atencao para", "Point of attention for"),
+        "alert_cta": tr(client, "Fique de olho. Inteligencia de mercado com a Guilds.", "Keep it on your radar. Market intelligence with Guilds."),
+        "stories_title": tr(client, "INSTAGRAM STORIES", "INSTAGRAM STORIES"),
+        "stories_copy_label": tr(client, "COPY DO STORIES", "STORY COPY"),
+        "stories_header": tr(client, "Inteligencia de mercado", "Market intelligence"),
+        "stories_link": tr(client, "Veja o relatorio completo no link da bio", "See the full report through the link in bio"),
+        "whatsapp_title": tr(client, "WHATSAPP STATUS / MENSAGEM", "WHATSAPP STATUS / MESSAGE"),
+        "followup_label": tr(client, "MENSAGEM DE ACOMPANHAMENTO:", "FOLLOW-UP MESSAGE:"),
+        "briefing_ready": tr(client, "Seu briefing personalizado esta pronto", "Your custom briefing is ready"),
+        "top3_today": tr(client, "Top 3 insights de hoje:", "Today's top 3 insights:"),
+        "attachment_line": tr(client, "Relatorio completo (PDF + audio) em anexo", "Full report (PDF + audio) attached"),
+        "reply_line_1": tr(client, "Alguma duvida ou quer aprofundar algum tema?", "Any questions or want to go deeper into a topic?"),
+        "reply_line_2": tr(client, "E so responder aqui", "Just reply here"),
+        "generated_message": tr(client, "Social media pack gerado", "Social media pack generated"),
+        "feed_cards": tr(client, "Feed cards", "Feed cards"),
+        "stories_label": tr(client, "Stories", "Stories"),
+        "copy_label": tr(client, "Copies", "Copy files"),
+    }
+
+
+def load_font(path: str, size: int):
+    try:
+        return ImageFont.truetype(path, size)
+    except Exception:
+        return ImageFont.load_default()
+
+
+def wrap_text(text: str, font, max_width: int, draw: ImageDraw.ImageDraw) -> list[str]:
+    words = str(text).split()
+    lines: list[str] = []
+    current: list[str] = []
+    for word in words:
+        test = " ".join(current + [word])
+        bbox = draw.textbbox((0, 0), test, font=font)
+        if bbox[2] <= max_width:
+            current.append(word)
+        else:
+            if current:
+                lines.append(" ".join(current))
+            current = [word]
+    if current:
+        lines.append(" ".join(current))
+    return lines
+
+
+def draw_rounded_rect(draw, xy, radius, fill, outline=None, outline_width=0):
+    x0, y0, x1, y1 = xy
+    draw.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill, outline=outline, width=outline_width)
+
+
+def draw_pill(draw, x, y, text, font, fg=BRANCO, bg=LARANJA, padding_x=24, padding_y=10):
+    bbox = draw.textbbox((0, 0), text, font=font)
+    w = bbox[2] - bbox[0] + padding_x * 2
+    h = bbox[3] - bbox[1] + padding_y * 2
+    draw_rounded_rect(draw, (x, y, x + w, y + h), radius=h // 2, fill=bg)
+    draw.text((x + padding_x, y + padding_y), text, font=font, fill=fg)
+    return w, h
+
+
+def create_base_canvas(width=1080, height=1080, bg=PRETO):
+    return Image.new("RGB", (width, height), bg)
+
+
+def add_guilds_branding(draw, img_w, img_h, size="small"):
+    if size == "small":
+        font_brand = load_font(F_BOLD, 28)
+        font_sub = load_font(F_LIGHT, 22)
+        y_start = img_h - 80
+    else:
+        font_brand = load_font(F_BOLD, 34)
+        font_sub = load_font(F_LIGHT, 26)
+        y_start = img_h - 100
+
+    draw.line([(60, y_start - 20), (img_w - 60, y_start - 20)], fill=LARANJA, width=1)
+    draw.text((60, y_start), "GUILDS", font=font_brand, fill=LARANJA)
+    brand_w = draw.textbbox((0, 0), "GUILDS", font=font_brand)[2]
+    draw.text((60 + brand_w + 16, y_start + 4), "Intelligence Engine", font=font_sub, fill=CINZA)
+    draw.text((img_w - 60, y_start), DATE_STR, font=font_sub, fill=CINZA, anchor="ra")
+
+
+def add_decorative_elements(draw, img_w, img_h):
+    draw.rectangle([0, 0, 6, img_h], fill=LARANJA)
+    cx, cy, radius = img_w - 80, 80, 120
+    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=LARANJA, width=1)
+    draw.ellipse([cx - radius // 2, cy - radius // 2, cx + radius // 2, cy + radius // 2], outline=LARANJA, width=1)
+
+
+def make_insight_card_feed(numero, titulo, descricao, acao, categoria, copy, fonte="", client_name="") -> Image.Image:
+    width, height = 1080, 1080
+    img = create_base_canvas(width, height, PRETO)
+    draw = ImageDraw.Draw(img)
+
+    for y in range(height):
+        t = y / height
+        draw.line([(0, y), (width, y)], fill=(int(13 + 10 * t), int(13 + 5 * t), int(13 + 20 * t)))
+
+    add_decorative_elements(draw, width, height)
+
+    fn_num = load_font(F_BLACK, 160)
+    fn_cat = load_font(F_BOLD, 30)
+    fn_titulo = load_font(F_BLACK, 62)
+    fn_desc = load_font(F_REGULAR, 34)
+    fn_acao = load_font(F_BOLD, 30)
+    fn_fonte = load_font(F_LIGHT, 24)
+    fn_client = load_font(F_BOLD, 26)
+
+    draw.text((width - 40, -20), f"0{numero}" if numero < 10 else str(numero), font=fn_num, fill=LARANJA, anchor="ra")
+    y = 80
+    _, pill_h = draw_pill(draw, 60, y, categoria.upper(), fn_cat, fg=PRETO, bg=CATEGORIA_CORES.get(categoria.lower(), LARANJA))
+    y += pill_h + 32
+    draw.text((60, y), f"#{numero}", font=load_font(F_BOLD, 36), fill=CINZA)
+    y += 52
+
+    for line in wrap_text(titulo, fn_titulo, width - 140, draw)[:3]:
+        draw.text((60, y), line, font=fn_titulo, fill=BRANCO)
+        y += 72
+    y += 12
+
+    draw.rectangle([60, y, 200, y + 4], fill=LARANJA)
+    y += 28
+    for line in wrap_text(descricao, fn_desc, width - 140, draw)[:4]:
+        draw.text((60, y), line, font=fn_desc, fill=CINZA)
+        y += 44
+    y += 16
+
+    if acao:
+        draw_rounded_rect(draw, (60, y, width - 60, y + pill_h + 20), radius=12, fill=(40, 20, 0))
+        draw_rounded_rect(draw, (60, y, width - 60, y + pill_h + 20), radius=12, fill=None, outline=LARANJA, outline_width=2)
+        prefix = f"-> {copy['action_label']}: "
+        draw.text((80, y + 12), prefix, font=fn_acao, fill=LARANJA)
+        action_x = 80 + draw.textbbox((0, 0), prefix, font=fn_acao)[2]
+        draw.text((action_x, y + 12), acao[:55] + ("..." if len(acao) > 55 else ""), font=fn_acao, fill=BRANCO)
+        y += pill_h + 40
+
+    if fonte:
+        draw.text((60, y), f"{copy['source_label']}: {fonte[:60]}", font=fn_fonte, fill=CINZA_ESC)
+    if client_name:
+        draw.text((width - 60, 60), f"{copy['for_label']}: {client_name}", font=fn_client, fill=CINZA_ESC, anchor="ra")
+
+    add_guilds_branding(draw, width, height)
+    return img
+
+
+def make_cover_card_feed(titulo_report, subtitulo, num_insights, copy, client_name="") -> Image.Image:
+    width, height = 1080, 1080
+    img = create_base_canvas(width, height, PRETO)
+    draw = ImageDraw.Draw(img)
+
+    for y in range(height):
+        t = y / height
+        draw.line([(0, y), (width, y)], fill=(int(13 + 8 * t), int(13 + 3 * t), int(13 + 25 * t)))
+
+    cx, cy = width // 2, height // 2 - 80
+    for radius in range(350, 0, -70):
+        draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=LARANJA, width=1)
+
+    draw.rectangle([0, 0, 6, height], fill=LARANJA)
+
+    fn_eyebrow = load_font(F_BOLD, 32)
+    fn_titulo = load_font(F_BLACK, 80)
+    fn_sub = load_font(F_REGULAR, 36)
+    fn_badge = load_font(F_BOLD, 30)
+    fn_client = load_font(F_BOLD, 32)
+
+    y = 120
+    draw.text((60, y), copy["greeting"], font=fn_eyebrow, fill=LARANJA)
+    y += 56
+    draw.rectangle([60, y, 360, y + 3], fill=LARANJA)
+    y += 28
+
+    for line in wrap_text(titulo_report, fn_titulo, width - 120, draw)[:3]:
+        draw.text((60, y), line, font=fn_titulo, fill=BRANCO)
+        y += 92
+    y += 16
+
+    for line in wrap_text(subtitulo, fn_sub, width - 140, draw)[:2]:
+        draw.text((60, y), line, font=fn_sub, fill=CINZA)
+        y += 48
+
+    y += 24
+    draw_pill(draw, 60, y, f"{num_insights} INSIGHTS", fn_badge, fg=PRETO, bg=LARANJA)
+    draw_pill(draw, 280, y, DATE_STR, fn_badge, fg=BRANCO, bg=(40, 40, 40))
+
+    if client_name:
+        draw.text((60, height - 160), copy["report_for"], font=load_font(F_LIGHT, 28), fill=CINZA_ESC)
+        draw.text((60, height - 120), client_name.upper(), font=fn_client, fill=BRANCO)
+
+    add_guilds_branding(draw, width, height)
+    return img
+
+
+def make_alert_opportunity_card(tipo, titulo, descricao, copy, client_name="") -> Image.Image:
+    width, height = 1080, 1080
+    img = create_base_canvas(width, height, PRETO)
+    draw = ImageDraw.Draw(img)
+    is_opp = tipo.lower() in {"oportunidade", "opportunity"}
+    accent = VERDE if is_opp else VERMELHO
+
+    for y in range(height):
+        t = y / height
+        fill = (int(13 + 5 * t), int(13 + 25 * t), int(13 + 10 * t)) if is_opp else (int(13 + 30 * t), int(13 + 5 * t), int(13 + 5 * t))
+        draw.line([(0, y), (width, y)], fill=fill)
+
+    draw.rectangle([0, 0, 6, height], fill=accent)
+    fn_tipo = load_font(F_BOLD, 36)
+    fn_titulo = load_font(F_BLACK, 68)
+    fn_desc = load_font(F_REGULAR, 36)
+    fn_client = load_font(F_BOLD, 28)
+
+    y = 100
+    draw_pill(draw, 60, y, tipo.upper(), fn_tipo, fg=PRETO, bg=accent)
+    y += 80
+    for line in wrap_text(titulo, fn_titulo, width - 120, draw)[:3]:
+        draw.text((60, y), line, font=fn_titulo, fill=BRANCO)
+        y += 82
+    y += 20
+    draw.rectangle([60, y, 200, y + 4], fill=accent)
+    y += 28
+    for line in wrap_text(descricao, fn_desc, width - 120, draw)[:5]:
+        draw.text((60, y), line, font=fn_desc, fill=CINZA)
+        y += 46
+    if client_name:
+        draw.text((width - 60, 60), f"{copy['for_label']}: {client_name}", font=fn_client, fill=CINZA_ESC, anchor="ra")
+    add_guilds_branding(draw, width, height)
+    return img
+
+
+def make_story(top3, copy, client_name="", titulo_story="Market Intelligence") -> Image.Image:
+    width, height = 1080, 1920
+    img = create_base_canvas(width, height, PRETO)
+    draw = ImageDraw.Draw(img)
+
+    for y in range(height):
+        t = y / height
+        draw.line([(0, y), (width, y)], fill=(int(13 + 8 * t), int(13 + 4 * t), int(13 + 28 * t)))
+
+    draw.rectangle([0, 0, 6, height], fill=LARANJA)
+    fn_header = load_font(F_BLACK, 52)
+    fn_label = load_font(F_BOLD, 30)
+    fn_titulo = load_font(F_BLACK, 52)
+    fn_desc = load_font(F_REGULAR, 34)
+    fn_acao = load_font(F_BOLD, 28)
+    fn_footer = load_font(F_BOLD, 32)
+    fn_small = load_font(F_LIGHT, 26)
+
+    y = 100
+    draw.text((60, y), copy["greeting"], font=load_font(F_BOLD, 36), fill=LARANJA)
+    y += 54
+    draw.rectangle([60, y, 500, y + 3], fill=LARANJA)
+    y += 20
+
+    for line in wrap_text(titulo_story, fn_header, width - 120, draw)[:2]:
+        draw.text((60, y), line, font=fn_header, fill=BRANCO)
+        y += 62
+    y += 10
+
+    if client_name:
+        draw.text((60, y), f"{copy['for_label']}: {client_name}", font=fn_small, fill=CINZA_ESC)
+        y += 44
+
+    draw.text((60, y), DATE_STR, font=fn_small, fill=CINZA_ESC)
+    y += 60
+    draw.line([(60, y), (width - 60, y)], fill=CINZA_ESC, width=1)
+    y += 50
+
+    for i, item in enumerate(top3[:3], 1):
+        draw.text((60, y), f"{i}.", font=fn_label, fill=LARANJA)
+        y += 46
+        for line in wrap_text(item.get("titulo", ""), fn_titulo, width - 120, draw)[:2]:
+            draw.text((60, y), line, font=fn_titulo, fill=BRANCO)
+            y += 60
+        y += 6
+        for line in wrap_text(item.get("desc", ""), fn_desc, width - 120, draw)[:3]:
+            draw.text((60, y), line, font=fn_desc, fill=CINZA)
+            y += 42
+        if item.get("acao"):
+            y += 8
+            draw.text((60, y), f"-> {item['acao'][:60]}", font=fn_acao, fill=LARANJA)
+            y += 38
+        y += 16
+        draw.line([(60, y), (width - 60, y)], fill=(50, 50, 50), width=1)
+        y += 36
+
+    draw.text((60, height - 100), "GUILDS", font=fn_footer, fill=LARANJA)
+    brand_w = draw.textbbox((0, 0), "GUILDS", font=fn_footer)[2]
+    draw.text((60 + brand_w + 16, height - 94), "Intelligence Engine", font=fn_small, fill=CINZA)
+    draw.text((60, height - 56), "guilds.com.br", font=fn_small, fill=CINZA_ESC)
+    draw.text((width - 60, height - 56), DATE_STR, font=fn_small, fill=CINZA_ESC, anchor="ra")
+    return img
+
+
+def generate_copies(client: dict, report_data: dict, output_dir: Path) -> Path:
+    copy = build_social_copy(client)
+    client_name = client["nome_empresa"]
+    top5 = report_data.get("top5_insights", [])
+    alertas = report_data.get("alertas", [])
+    oportunidades = report_data.get("oportunidades", [])
+    setor = client.get("perfil_negocio", {}).get("setor", "")
+
+    lines = [
+        "=" * 60,
+        f"GUILDS INTELLIGENCE - {copy['copies_title']}",
+        f"{copy['client_label']}: {client_name}",
+        f"{copy['date_label']}: {DATE_STR}",
+        "=" * 60,
+        "",
+        copy["feed_cover_title"],
+        "-" * 40,
+        f"[Image: cover_{DATE_STR.replace('/','')}.png]",
+        "",
+        copy["cover_caption_label"],
+        f"{copy['cover_caption_line_1']} - {copy['cover_caption_line_2']} {setor}",
+        f"{copy['cover_caption_line_3']} {client_name}.",
+        "",
+        copy["drag_hint"],
+        "",
+        "#MarketIntelligence #Business #Strategy",
+        "",
+        "-" * 40,
+        "",
+    ]
+
+    for i, ins in enumerate(top5[:5], 1):
+        lines += [
+            f"{copy['feed_card_title']} {i}: {ins.get('titulo', '')[:40]}",
+            "-" * 40,
+            f"[Image: insight_{i:02d}_{DATE_STR.replace('/','')}.png]",
+            "",
+            copy["caption_label"],
+            f"#{i} {tr(client, 'dos 5 insights do dia para', 'of 5 insights for')} {client_name}",
+            "",
+            f"- {ins.get('titulo', '')}",
+            "",
+            ins.get("desc", "")[:200],
+            "",
+        ]
+        if ins.get("acao"):
+            lines += [f"{copy['what_to_do']}: {ins['acao']}", ""]
+        lines += ["#MarketIntelligence #Insights #Business", "", "-" * 40, ""]
+
+    if oportunidades:
+        lines += [
+            f"{copy['feed_card_title']} {copy['opportunity_type'].upper()}",
+            "-" * 40,
+            "[Image: opportunity_DDMMAAAA.png]",
+            "",
+            copy["caption_label"],
+            f"{copy['opportunity_caption']} {client_name}:",
+            "",
+            oportunidades[0][:250],
+            "",
+            copy["opportunity_cta"],
+            "guilds.com.br",
+            "",
+            "#Opportunity #Market #Strategy",
+            "",
+            "-" * 40,
+            "",
+        ]
+
+    if alertas:
+        lines += [
+            f"{copy['feed_card_title']} {copy['alert_type'].upper()}",
+            "-" * 40,
+            "[Image: alert_DDMMAAAA.png]",
+            "",
+            copy["caption_label"],
+            f"{copy['alert_caption']} {client_name}:",
+            "",
+            alertas[0][:250],
+            "",
+            copy["alert_cta"],
+            "",
+            "#Alert #Market #BusinessRisk",
+            "",
+            "=" * 60,
+            "",
+        ]
+
+    lines += [
+        copy["stories_title"],
+        "-" * 40,
+        "[Image: story_DDMMAAAA.png]",
+        "",
+        f"{copy['stories_copy_label']}:",
+        "",
+        f"{copy['stories_header']} | {DATE_STR}",
+        f"3 insights for {client_name}" if is_english_client(client) else f"3 insights para {client_name}",
+        "",
+    ]
+    for i, ins in enumerate(top5[:3], 1):
+        lines.append(f"{i}. {ins.get('titulo', '')}")
+    lines += ["", copy["stories_link"], "guilds.com.br", "", "=" * 60, ""]
+
+    lines += [
+        copy["whatsapp_title"],
+        "-" * 40,
+        "[Image: story_DDMMAAAA.png]",
+        "",
+        copy["followup_label"],
+        "",
+        f"*Guilds Intelligence - {DATE_STR}*",
+        f"{copy['briefing_ready']}, {client_name.split()[0]}!",
+        "",
+        copy["top3_today"],
+    ]
+    for i, ins in enumerate(top5[:3], 1):
+        lines.append(f"{i}. {ins.get('titulo', '')}")
+    lines += [
+        "",
+        copy["attachment_line"],
+        "",
+        copy["reply_line_1"],
+        copy["reply_line_2"],
+        "",
+        "_Guilds Intelligence Engine_",
+        "_guilds.com.br_",
+        "",
+        "=" * 60,
+    ]
+
+    txt_path = output_dir / f"Guilds_SocialCopy_{client_name.replace(' ', '_')}_{DATE_STR.replace('/', '')}.txt"
+    with open(txt_path, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(lines))
+    print(f"OK Copies generated: {txt_path}")
+    return txt_path
+
+
+def generate_social_media_pack(client: dict, report_data: dict, base_output_dir: Path) -> dict:
+    client_name = client["nome_empresa"]
+    date_file = datetime.now().strftime("%d%m%Y")
+    copy = build_social_copy(client)
+
+    sm_dir = base_output_dir / "social_media"
+    feed_dir = sm_dir / "feed"
+    story_dir = sm_dir / "stories"
+    copy_dir = sm_dir / "copy"
+    for directory in [feed_dir, story_dir, copy_dir]:
+        directory.mkdir(parents=True, exist_ok=True)
+
+    top5 = report_data.get("top5_insights", [])
+    alertas = report_data.get("alertas", [])
+    oportunidades = report_data.get("oportunidades", [])
+    setor = client.get("perfil_negocio", {}).get("setor", "")
+
+    generated = {"feed": [], "stories": [], "copy": []}
+
+    print("  Generating carousel cover...")
+    cover = make_cover_card_feed(
+        titulo_report=copy["market_title"],
+        subtitulo=f"{copy['cover_subtitle']} {setor}",
+        num_insights=len(top5),
+        copy=copy,
+        client_name=client_name,
+    )
+    cover_path = feed_dir / f"00_cover_{date_file}.png"
+    cover.save(str(cover_path), "PNG", quality=95)
+    generated["feed"].append(cover_path)
+
+    category_map = ["technology", "business", "trend", "market", "education"] if is_english_client(client) else ["tecnologia", "negocios", "tendencia", "mercado", "educacao"]
+    for i, ins in enumerate(top5[:5], 1):
+        print(f"  Generating insight card {i}/5...")
+        card = make_insight_card_feed(
+            numero=i,
+            titulo=ins.get("titulo", ""),
+            descricao=ins.get("desc", ""),
+            acao=ins.get("acao", ""),
+            categoria=category_map[i - 1],
+            fonte=ins.get("fonte", ""),
+            copy=copy,
+            client_name=client_name,
+        )
+        card_path = feed_dir / f"{i:02d}_insight_{i}_{date_file}.png"
+        card.save(str(card_path), "PNG", quality=95)
+        generated["feed"].append(card_path)
+
+    if oportunidades:
+        print("  Generating opportunity card...")
+        opp_card = make_alert_opportunity_card(copy["opportunity_type"], copy["opportunity_title"], oportunidades[0][:280], copy, client_name)
+        opp_path = feed_dir / f"06_opportunity_{date_file}.png"
+        opp_card.save(str(opp_path), "PNG", quality=95)
+        generated["feed"].append(opp_path)
+
+    if alertas:
+        print("  Generating alert card...")
+        alert_card = make_alert_opportunity_card(copy["alert_type"], copy["alert_title"], alertas[0][:280], copy, client_name)
+        alert_path = feed_dir / f"07_alert_{date_file}.png"
+        alert_card.save(str(alert_path), "PNG", quality=95)
+        generated["feed"].append(alert_path)
+
+    print("  Generating story...")
+    story = make_story(top5[:3], copy, client_name, f"{copy['story_title']} - {setor[:30]}")
+    story_path = story_dir / f"story_{date_file}.png"
+    story.save(str(story_path), "PNG", quality=95)
+    generated["stories"].append(story_path)
+
+    print("  Generating copy text...")
+    copy_path = generate_copies(client, report_data, copy_dir)
+    generated["copy"].append(copy_path)
+
+    total = len(generated["feed"]) + len(generated["stories"]) + len(generated["copy"])
+    print(f"\nOK {copy['generated_message']}: {total} files in {sm_dir}")
+    print(f"   {copy['feed_cards']}: {len(generated['feed'])}")
+    print(f"   {copy['stories_label']}: {len(generated['stories'])}")
+    print(f"   {copy['copy_label']}: {len(generated['copy'])}")
+    return generated
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).parent))
+    from gerar_relatorio_cliente import CLIENTS_DIR, load_client, load_portfolio, run_intelligence_engine
+
+    client_id = sys.argv[1] if len(sys.argv) > 1 else "exemplo-cliente"
+    client = load_client(client_id)
+    portfolio = load_portfolio()
+    report_data = run_intelligence_engine(client, portfolio)
+
+    date_file = datetime.now().strftime("%d%m%Y")
+    report_dir = CLIENTS_DIR / client_id / "reports" / date_file
+    report_dir.mkdir(parents=True, exist_ok=True)
+
+    print("\nGuilds Social Media Generator")
+    print(f"Client: {client['nome_empresa']}")
+    print("-" * 50)
+    generate_social_media_pack(client, report_data, report_dir)

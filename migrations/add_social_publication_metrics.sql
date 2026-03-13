@@ -1,0 +1,10 @@
+ALTER TABLE public.social_publications
+  ADD COLUMN IF NOT EXISTS publish_attempts INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS last_publish_attempt_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS last_error TEXT,
+  ADD COLUMN IF NOT EXISTS impressions INTEGER,
+  ADD COLUMN IF NOT EXISTS reactions_count INTEGER,
+  ADD COLUMN IF NOT EXISTS comments_count INTEGER,
+  ADD COLUMN IF NOT EXISTS shares_count INTEGER,
+  ADD COLUMN IF NOT EXISTS clicks_count INTEGER,
+  ADD COLUMN IF NOT EXISTS last_metrics_sync_at TIMESTAMPTZ;

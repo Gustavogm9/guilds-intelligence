@@ -1,6 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+const planNameByValue: Record<string, string> = {
+    essencial: "Essencial",
+    crescimento: "Crescimento",
+    profissional: "Profissional",
+    studio: "Studio",
+    enterprise: "Enterprise",
+};
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
@@ -14,12 +22,13 @@ export async function POST(request: Request) {
         }
 
         const supabase = await createClient();
+        const normalizedPlan = planNameByValue[String(plan || "").toLowerCase()] || "Profissional";
 
         // Buscar plano selecionado
         const { data: planData } = await supabase
             .from("plans")
             .select("id")
-            .eq("name", plan || "Profissional")
+            .eq("name", normalizedPlan)
             .single();
 
         // Registrar como client (se não existir)

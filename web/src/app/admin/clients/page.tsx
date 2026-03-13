@@ -55,7 +55,7 @@ export default async function AdminClientsPage({
     const clients = (rawClients as unknown as ClientRow[]) || [];
 
     // Buscar eventos de lead_submit para calcular "temperatura" (submissões repetidas)
-    let heatMap: Record<string, number> = {};
+    const heatMap: Record<string, number> = {};
     try {
         const { data: leadEvents } = await supabase
             .from("funnel_events")

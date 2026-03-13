@@ -1,24 +1,36 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-    LayoutDashboard,
-    Users,
-    FileText,
-    CreditCard,
-    Package,
-    Settings,
-    LogOut,
+    Activity,
     BarChart3,
+    BriefcaseBusiness,
+    CreditCard,
+    FileText,
+    LayoutDashboard,
+    LogOut,
+    Package,
+    Search,
+    Share2,
+    Sparkles,
+    MessageCircle,
+    Users,
 } from "lucide-react";
-import Link from "next/link";
+
+import { createClient } from "@/lib/supabase/server";
 
 const adminLinks = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/clients", label: "Clientes", icon: Users },
     { href: "/admin/reports", label: "Relatórios", icon: FileText },
+    { href: "/admin/external", label: "Inteligência Externa", icon: Search },
+    { href: "/admin/social", label: "Social", icon: Share2 },
+    { href: "/admin/whatsapp", label: "WhatsApp", icon: MessageCircle },
+    { href: "/admin/deep-dives", label: "Deep Dives", icon: Sparkles },
     { href: "/admin/plans", label: "Planos", icon: CreditCard },
     { href: "/admin/portfolio", label: "Portfolio", icon: Package },
     { href: "/admin/billing", label: "Billing", icon: BarChart3 },
+    { href: "/admin/revenue", label: "Revenue Ops", icon: BriefcaseBusiness },
+    { href: "/admin/ops", label: "Ops", icon: Activity },
 ];
 
 export default async function AdminLayout({
@@ -43,7 +55,6 @@ export default async function AdminLayout({
 
     return (
         <div className="min-h-screen flex">
-            {/* Sidebar */}
             <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
                 <div className="p-6 border-b border-border">
                     <Link href="/admin" className="text-xl font-extrabold">
@@ -91,7 +102,6 @@ export default async function AdminLayout({
                 </div>
             </aside>
 
-            {/* Main content */}
             <main className="flex-1 overflow-auto">
                 <div className="p-8">{children}</div>
             </main>

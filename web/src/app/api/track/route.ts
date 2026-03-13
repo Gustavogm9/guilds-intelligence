@@ -19,8 +19,24 @@ export async function POST(request: Request) {
             "lead_submit",
             "signup_complete",
             "onboarding_complete",
+            "dashboard_return",
+            "inbox_view",
             "first_report_view",
+            "report_view",
+            "report_download",
+            "audio_play",
+            "deep_dive_requested",
             "login",
+            "scheduler_run",
+            "report_generation_triggered",
+            "report_generation_failed",
+            "report_retry_triggered",
+            "report_auto_recovery_triggered",
+            "whatsapp_message_received",
+            "whatsapp_command_processed",
+            "whatsapp_deep_dive_requested",
+            "schedule_preferences_saved",
+            "report_generated_on_demand",
         ];
 
         if (!validEvents.includes(event_type)) {
@@ -31,11 +47,41 @@ export async function POST(request: Request) {
         }
 
         const supabase = await createClient();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+
+        let enrichedMetadata = metadata || {};
+
+        if (user) {
+            try {
+                const { data: client } = await supabase
+                    .from("clients")
+                    .select("id, plan_id, plans(name)")
+                    .eq("user_id", user.id)
+                    .single();
+
+                const plan = Array.isArray(client?.plans) ? client?.plans[0] : client?.plans;
+
+                enrichedMetadata = {
+                    ...enrichedMetadata,
+                    user_id: user.id,
+                    client_id: client?.id || null,
+                    plan_id: client?.plan_id || null,
+                    plan_name: plan?.name || null,
+                };
+            } catch {
+                enrichedMetadata = {
+                    ...enrichedMetadata,
+                    user_id: user.id,
+                };
+            }
+        }
 
         const { error } = await supabase.from("funnel_events").insert({
             event_type,
             session_id: session_id || null,
-            metadata: metadata || {},
+            metadata: enrichedMetadata,
         });
 
         if (error) {

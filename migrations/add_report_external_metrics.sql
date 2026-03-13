@@ -1,0 +1,4 @@
+ALTER TABLE public.reports
+  ADD COLUMN IF NOT EXISTS external_feeds_considered INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS external_llm_used BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS external_estimated_cost_usd NUMERIC(10,4) NOT NULL DEFAULT 0;

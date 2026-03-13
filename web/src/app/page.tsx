@@ -1,1025 +1,746 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import {
-  FileText,
-  Headphones,
-  MessageSquare,
-  ImageIcon,
-  CheckCircle2,
-  ArrowRight,
-  Zap,
-  Target,
-  TrendingUp,
-  Shield,
-  Star,
-  ChevronDown,
-  Menu,
-  X as XIcon,
-  Sparkles,
-  Phone,
-  Play,
+    ArrowRight,
+    CheckCircle2,
+    FileText,
+    Globe2,
+    ImageIcon,
+    MessageSquare,
+    Play,
+    Sparkles,
+    TrendingUp,
+    X as XIcon,
 } from "lucide-react";
+
+import { trackEvent } from "@/lib/tracking";
+import { AppLocale } from "@/lib/i18n";
+import { usePublicLocale } from "@/lib/public-i18n";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { trackEvent } from "@/lib/tracking";
 
-/* ─── Animated Section Wrapper ─── */
-function Section({
-  children,
-  className = "",
-  id,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  id?: string;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
+type Plan = {
+    value: string;
+    name: string;
+    badge: string;
+    originalPrice: string;
+    discountedPrice: string;
+    period: string;
+    features: string[];
+    popular?: boolean;
+};
 
-  return (
-    <motion.section
-      id={id}
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className={className}
-    >
-      {children}
-    </motion.section>
-  );
+type Faq = {
+    question: string;
+    answer: string;
+};
+
+function getCopy(locale: AppLocale) {
+    if (locale === "en-US") {
+        return {
+            nav: {
+                product: "Product",
+                formats: "Formats",
+                plans: "Plans",
+                faq: "FAQ",
+                signIn: "Sign in",
+                start: "Start free",
+                language: "Language",
+            },
+            hero: {
+                eyebrow: "AI-powered market intelligence",
+                title: "One strategic report. Multiple ready-to-use formats.",
+                description: "Guilds turns your business context into recurring intelligence with PDF, one-page summary, WhatsApp copy, audio briefing, and a social pack.",
+                primary: "Get my first report free",
+                secondary: "See plans",
+                proof: "Your first report is free. Billing starts only in month two.",
+            },
+            metrics: [
+                { label: "Formats per delivery", value: "5+" },
+                { label: "Recurring plans", value: "Daily to monthly" },
+                { label: "Main use case", value: "Actionable market clarity" },
+            ],
+            howTitle: "How it works",
+            howSubtitle: "A simple operating model for a recurring intelligence product.",
+            how: [
+                {
+                    title: "You share your context",
+                    body: "We capture sector, products, goals, pain points, tone, and business context during onboarding.",
+                },
+                {
+                    title: "The system maps your niches",
+                    body: "The engine prioritizes the most relevant niches, risks, opportunities, and Guilds recommendations for your company.",
+                },
+                {
+                    title: "You receive usable outputs",
+                    body: "Each delivery can include PDF, one-page summary, WhatsApp copy, audio briefing, and a social media pack.",
+                },
+            ],
+            formatsTitle: "Built for how teams actually consume intelligence",
+            formats: [
+                "Full PDF for strategic reading",
+                "One-page summary for quick alignment",
+                "WhatsApp copy for distribution",
+                "Audio briefing for executive consumption",
+                "Social pack for content execution",
+            ],
+            plansTitle: "Plans with recurring intelligence",
+            plansSubtitle: "Choose the cadence that matches your operating rhythm.",
+            faqTitle: "Frequently asked questions",
+            finalTitle: "Start with your first report free",
+            finalBody: "Create your account, complete onboarding, and let the platform prepare the first delivery tailored to your company.",
+            finalCta: "Create account",
+            footer: {
+                body: "Market intelligence and strategic reports delivered at the cadence your company needs.",
+                links: "Quick links",
+                privacy: "Privacy Policy",
+                terms: "Terms of Use",
+                contact: "Contact",
+            },
+            modal: {
+                eyebrow: "First report free",
+                title: "Start your intelligence workspace",
+                description: "Share your data and we will take you to account creation next.",
+                successTitle: "Details received",
+                successBody: "Your information has been saved. We are taking you to account creation now.",
+                name: "Your name",
+                company: "Company name",
+                email: "Work email",
+                whatsapp: "WhatsApp",
+                plan: "Plan of interest",
+                submit: "Get my first report free",
+                submitting: "Sending...",
+                instant: "No credit card required • Billing starts only in month two",
+                createNow: "Create my account now",
+            },
+            faq: [] as Faq[],
+            plans: [] as Plan[],
+        };
+    }
+
+    return {
+        nav: {
+            product: "Produto",
+            formats: "Formatos",
+            plans: "Planos",
+            faq: "FAQ",
+            signIn: "Entrar",
+            start: "Começar grátis",
+            language: "Idioma",
+        },
+        hero: {
+            eyebrow: "Inteligência de mercado com IA",
+            title: "Um relatório estratégico. Vários formatos prontos para uso.",
+            description: "A Guilds transforma o contexto da sua empresa em inteligência recorrente com PDF, one-page, copy para WhatsApp, áudio briefing e social pack.",
+            primary: "Quero meu primeiro relatório grátis",
+            secondary: "Ver planos",
+            proof: "Seu primeiro relatório é grátis. A cobrança só começa no segundo mês.",
+        },
+        metrics: [
+            { label: "Formatos por entrega", value: "5+" },
+            { label: "Planos recorrentes", value: "Diário ao mensal" },
+            { label: "Uso principal", value: "Clareza acionável de mercado" },
+        ],
+        howTitle: "Como funciona",
+        howSubtitle: "Um modelo simples para operar inteligência recorrente como produto.",
+        how: [
+            {
+                title: "Você compartilha seu contexto",
+                body: "No onboarding capturamos setor, produtos, objetivos, dores, tom e contexto do negócio.",
+            },
+            {
+                title: "O sistema mapeia seus nichos",
+                body: "A engine prioriza nichos, riscos, oportunidades e recomendações Guilds mais relevantes para sua empresa.",
+            },
+            {
+                title: "Você recebe entregas utilizáveis",
+                body: "Cada entrega pode incluir PDF, one-page, texto para WhatsApp, áudio briefing e social pack.",
+            },
+        ],
+        formatsTitle: "Feito para o jeito real que equipes consomem inteligência",
+        formats: [
+            "PDF completo para leitura estratégica",
+            "One-page para alinhamento rápido",
+            "Copy para WhatsApp para distribuição",
+            "Áudio briefing para executivos",
+            "Social pack para execução de conteúdo",
+        ],
+        plansTitle: "Planos com inteligência recorrente",
+        plansSubtitle: "Escolha a cadência que combina com a sua operação.",
+        faqTitle: "Perguntas frequentes",
+        finalTitle: "Comece com seu primeiro relatório grátis",
+        finalBody: "Crie sua conta, complete o onboarding e deixe a plataforma preparar a primeira entrega sob medida para a sua empresa.",
+        finalCta: "Criar conta",
+        footer: {
+            body: "Inteligência de mercado e relatórios estratégicos entregues na frequência que sua empresa precisa.",
+            links: "Links rápidos",
+            privacy: "Política de Privacidade",
+            terms: "Termos de Uso",
+            contact: "Contato",
+        },
+        modal: {
+            eyebrow: "1º relatório grátis",
+            title: "Comece sua área de inteligência",
+            description: "Preencha seus dados e vamos te levar para a criação da conta em seguida.",
+            successTitle: "Dados recebidos",
+            successBody: "Seus dados foram salvos. Vamos te levar para criar sua conta agora.",
+            name: "Seu nome",
+            company: "Nome da empresa",
+            email: "Email corporativo",
+            whatsapp: "WhatsApp",
+            plan: "Plano de interesse",
+            submit: "Quero meu primeiro relatório grátis",
+            submitting: "Enviando...",
+            instant: "Sem cartão necessário • Cobrança só a partir do segundo mês",
+            createNow: "Criar minha conta agora",
+        },
+        faq: [] as Faq[],
+        plans: [] as Plan[],
+    };
 }
 
-/* ─── FAQ Accordion ─── */
-function FaqItem({
-  question,
-  answer,
-}: {
-  question: string;
-  answer: string;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b border-border">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between py-5 text-left text-base font-medium hover:text-primary transition-colors"
-      >
-        {question}
-        <ChevronDown
-          className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-      <motion.div
-        initial={false}
-        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="overflow-hidden"
-      >
-        <p className="pb-5 text-muted-foreground leading-relaxed">{answer}</p>
-      </motion.div>
-    </div>
-  );
+function FaqItem({ faq }: { faq: Faq }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div className="border-b border-border">
+            <button
+                onClick={() => setOpen((value) => !value)}
+                className="flex w-full items-center justify-between py-5 text-left text-base font-medium hover:text-primary transition-colors"
+            >
+                {faq.question}
+                <span className="text-muted-foreground">{open ? "-" : "+"}</span>
+            </button>
+            {open ? (
+                <p className="pb-5 text-muted-foreground leading-relaxed">{faq.answer}</p>
+            ) : null}
+        </div>
+    );
 }
 
-/* ─── Plans data ─── */
-const plans = [
-  {
-    name: "Essencial",
-    priceOriginal: "R$297",
-    priceDiscount: "R$247",
-    period: "/mês",
-    frequency: "Mensal",
-    frequencyDetail: "1 relatório por mês",
-    features: [
-      "1 relatório mensal",
-      "PDF Completo + One Page",
-      "Copy para WhatsApp",
-      "Nichos mapeados por IA",
-    ],
-    popular: false,
-    value: "essencial",
-  },
-  {
-    name: "Crescimento",
-    priceOriginal: "R$597",
-    priceDiscount: "R$497",
-    period: "/mês",
-    frequency: "Quinzenal",
-    frequencyDetail: "2 relatórios por mês",
-    features: [
-      "2 relatórios (quinzenal)",
-      "Tudo do Essencial",
-      "Áudio MP3 com player in-app",
-      "Briefing narrado (~10min)",
-    ],
-    popular: false,
-    value: "crescimento",
-  },
-  {
-    name: "Profissional",
-    priceOriginal: "R$997",
-    priceDiscount: "R$827",
-    period: "/mês",
-    frequency: "Semanal",
-    frequencyDetail: "4 relatórios por mês",
-    features: [
-      "4 relatórios (semanal)",
-      "Tudo do Crescimento",
-      "Pack Social Media completo",
-      "8 cards + stories + copy prontos",
-    ],
-    popular: true,
-    value: "profissional",
-  },
-  {
-    name: "Studio",
-    priceOriginal: "R$2.197",
-    priceDiscount: "R$1.797",
-    period: "/mês",
-    frequency: "3x por semana",
-    frequencyDetail: "12 relatórios por mês",
-    features: [
-      "12 relatórios (3x/semana)",
-      "Todos os formatos inclusos",
-      "Até 3 empresas no mesmo plano",
-      "Deep dives ilimitados",
-    ],
-    popular: false,
-    value: "studio",
-  },
-  {
-    name: "Enterprise",
-    priceOriginal: "R$4.297",
-    priceDiscount: "R$3.497",
-    period: "/mês",
-    frequency: "Dias úteis",
-    frequencyDetail: "~22 relatórios por mês",
-    features: [
-      "Relatório todo dia útil",
-      "Todos os formatos inclusos",
-      "Até 5 empresas no mesmo plano",
-      "Deep dives ilimitados",
-      "15 nichos mapeados",
-    ],
-    popular: false,
-    value: "enterprise",
-  },
-];
-
-const faqs = [
-  {
-    question: "Como o relatório é personalizado para a minha empresa?",
-    answer:
-      "Antes de gerar qualquer relatório, você preenche um perfil detalhado da sua empresa — setor, produtos, clientes, objetivos e dores. A IA usa essas informações para mapear exatamente os nichos de mercado que fazem sentido para você. O relatório de uma HealthTech é completamente diferente do de uma construtora.",
-  },
-  {
-    question: "Como funciona o primeiro relatório grátis?",
-    answer:
-      "Você assina um plano, preenche seu perfil e recebe o primeiro relatório sem nenhum custo. Só a partir do segundo mês sua assinatura é cobrada. Se não gostar, cancela antes de ser cobrado.",
-  },
-  {
-    question: "Quanto tempo leva para eu receber o relatório?",
-    answer:
-      "O relatório é gerado automaticamente na frequência do seu plano (diário, semanal, quinzenal ou mensal). Você recebe uma notificação no sistema e por email quando estiver pronto, e pode ouvir o áudio direto na plataforma.",
-  },
-  {
-    question: "Posso cancelar quando quiser?",
-    answer:
-      "Sim. Sem fidelidade, sem multa. Você cancela com um clique no painel.",
-  },
-  {
-    question: "O desconto do grupo é permanente?",
-    answer:
-      "O desconto é aplicado enquanto você mantiver a assinatura ativa. Se cancelar e quiser voltar, pagará o preço público.",
-  },
-  {
-    question: "Como acesso os relatórios e áudios?",
-    answer:
-      "Todos os relatórios ficam no seu dashboard com acesso vitalício ao histórico completo. O áudio tem player integrado direto na plataforma — ouça sem baixar. Também é possível fazer download de PDFs, MP3s e Social Packs a qualquer momento.",
-  },
-  {
-    question: "O Pack Social Media vem pronto para postar?",
-    answer:
-      "Sim. Você recebe as imagens em alta resolução (PNG) prontas para o Instagram/LinkedIn, mais o texto (copy) para cada card. É só escolher, copiar e postar.",
-  },
-  {
-    question: "Quem está por trás disso?",
-    answer:
-      "A Guilds é uma empresa brasileira de tecnologia e IA fundada por Gustavo Macedo. Vocês já se conhecem do grupo — qualquer dúvida, pode me chamar diretamente.",
-  },
-];
-
-/* ─── Lead Capture Modal ─── */
 function LeadModal({
-  isOpen,
-  onClose,
-  selectedPlan = "profissional",
+    isOpen,
+    onClose,
+    selectedPlan,
+    locale,
+    plans,
 }: {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedPlan?: string;
+    isOpen: boolean;
+    onClose: () => void;
+    selectedPlan: string;
+    locale: AppLocale;
+    plans: Plan[];
 }) {
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState(selectedPlan);
+    const t = getCopy(locale);
+    const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [currentPlan, setCurrentPlan] = useState(selectedPlan);
 
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentPlan(selectedPlan);
-      setSubmitted(false);
+    useEffect(() => {
+        setCurrentPlan(selectedPlan);
+    }, [selectedPlan]);
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        setLoading(true);
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+        const leadName = String(formData.get("lead-name") || "");
+        const email = String(formData.get("lead-email") || "");
+        const plan = String(formData.get("lead-plan") || currentPlan);
+
+        try {
+            await fetch("/api/leads", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: leadName,
+                    company: formData.get("lead-company"),
+                    email,
+                    phone: formData.get("lead-phone"),
+                    plan,
+                }),
+            });
+        } catch {
+            // Ignore lead API errors here and keep the UX moving.
+        }
+
+        setSubmitted(true);
+        setLoading(false);
+        trackEvent("lead_submit", { plan, email, language: locale });
+        setTimeout(() => {
+            window.location.href = `/signup?lang=${encodeURIComponent(locale)}&plan=${encodeURIComponent(plan)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(leadName)}`;
+        }, 1200);
     }
-  }, [isOpen, selectedPlan]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const leadName = formData.get("lead-name") as string;
-    const email = formData.get("lead-email") as string;
-    const plan = formData.get("lead-plan") as string || currentPlan;
-    try {
-      await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: leadName,
-          company: formData.get("lead-company"),
-          email,
-          phone: formData.get("lead-phone"),
-          plan,
-        }),
-      });
-    } catch {
-      // Falha silenciosa — lead é capturado de qualquer forma no frontend
+    if (!isOpen) {
+        return null;
     }
-    setLoading(false);
-    setSubmitted(true);
-    trackEvent("lead_submit", { plan, email });
-    // Redireciona para signup após 3 segundos
-    setTimeout(() => {
-      window.location.href = `/signup?plan=${encodeURIComponent(plan)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(leadName)}`;
-    }, 3000);
-  }
 
-  function goToSignup() {
-    window.location.href = `/signup?plan=${encodeURIComponent(currentPlan)}`;
-  }
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-        >
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
-
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", duration: 0.5 }}
-            className="relative bg-background rounded-2xl shadow-2xl w-full max-w-md p-8 border border-border z-10"
-          >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <XIcon className="h-5 w-5" />
-            </button>
-
-            {submitted ? (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex flex-col items-center gap-4 py-4"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-background rounded-2xl shadow-2xl w-full max-w-md p-8 border border-border z-10">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <CheckCircle2 className="h-16 w-16 text-green-500" />
-                </motion.div>
-                <h3 className="text-2xl font-bold">Dados recebidos! 🎉</h3>
-                <p className="text-muted-foreground text-center max-w-sm">
-                  Seus dados foram registrados com sucesso.
-                  Vamos redirecionar você para criar sua conta em instantes...
-                </p>
-                <Button onClick={goToSignup} className="mt-2">
-                  Criar minha conta agora →
-                </Button>
-              </motion.div>
-            ) : (
-              <>
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-                    <Sparkles className="h-3 w-3" />
-                    1º relatório grátis
-                  </div>
-                  <h2 className="text-xl font-bold">
-                    Comece sua inteligência de mercado
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Preencha seus dados e receba acesso à plataforma
-                  </p>
-                </div>
-                <form onSubmit={handleSubmit} className="grid gap-3">
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="lead-name" className="text-xs">Seu nome</Label>
-                    <Input id="lead-name" name="lead-name" placeholder="Gustavo Silva" required className="h-9" />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="lead-company" className="text-xs">Nome da empresa</Label>
-                    <Input id="lead-company" name="lead-company" placeholder="TechFarma Soluções" required className="h-9" />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="lead-email" className="text-xs">Email corporativo</Label>
-                    <Input
-                      id="lead-email"
-                      name="lead-email"
-                      type="email"
-                      placeholder="gustavo@techfarma.com.br"
-                      required
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="lead-phone" className="text-xs">WhatsApp</Label>
-                    <Input
-                      id="lead-phone"
-                      name="lead-phone"
-                      type="tel"
-                      required
-                      minLength={14}
-                      maxLength={15}
-                      placeholder="(11) 99999-9999"
-                      className="h-9"
-                      onChange={(e) => {
-                        let v = e.target.value.replace(/\D/g, "");
-                        if (v.length <= 11) {
-                          v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-                          v = v.replace(/(\d)(\d{4})$/, "$1-$2");
-                          e.target.value = v;
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="lead-plan" className="text-xs">Plano de interesse</Label>
-                    <select
-                      id="lead-plan"
-                      name="lead-plan"
-                      value={currentPlan}
-                      onChange={(e) => setCurrentPlan(e.target.value)}
-                      className="flex h-9 w-full items-center rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-                    >
-                      {plans.map((p) => (
-                        <option key={p.value} value={p.value}>
-                          {p.name} — {p.frequencyDetail || "1 relatório por mês"}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="mt-1 text-sm font-semibold h-10"
-                    disabled={loading}
-                  >
-                    {loading ? "Enviando..." : "Quero meu primeiro relatório grátis →"}
-                  </Button>
-                  <p className="text-[11px] text-muted-foreground text-center">
-                    Sem cartão necessário · Só cobrado a partir do 2º mês
-                  </p>
-                </form>
-              </>
-            )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+                    <XIcon className="h-5 w-5" />
+                </button>
+
+                {submitted ? (
+                    <div className="flex flex-col items-center gap-4 py-6 text-center">
+                        <CheckCircle2 className="h-14 w-14 text-green-500" />
+                        <h3 className="text-2xl font-bold">{t.modal.successTitle}</h3>
+                        <p className="text-muted-foreground text-sm">{t.modal.successBody}</p>
+                        <Button
+                            onClick={() => {
+                                window.location.href = `/signup?lang=${encodeURIComponent(locale)}&plan=${encodeURIComponent(currentPlan)}`;
+                            }}
+                        >
+                            {t.modal.createNow}
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        <div className="text-center mb-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+                                <Sparkles className="h-3 w-3" />
+                                {t.modal.eyebrow}
+                            </div>
+                            <h2 className="text-xl font-bold">{t.modal.title}</h2>
+                            <p className="text-sm text-muted-foreground mt-1">{t.modal.description}</p>
+                        </div>
+                        <form onSubmit={handleSubmit} className="grid gap-3">
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="lead-name" className="text-xs">{t.modal.name}</Label>
+                                <Input id="lead-name" name="lead-name" required className="h-9" />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="lead-company" className="text-xs">{t.modal.company}</Label>
+                                <Input id="lead-company" name="lead-company" required className="h-9" />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="lead-email" className="text-xs">{t.modal.email}</Label>
+                                <Input id="lead-email" name="lead-email" type="email" required className="h-9" />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="lead-phone" className="text-xs">{t.modal.whatsapp}</Label>
+                                <Input id="lead-phone" name="lead-phone" type="tel" required className="h-9" />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="lead-plan" className="text-xs">{t.modal.plan}</Label>
+                                <select
+                                    id="lead-plan"
+                                    name="lead-plan"
+                                    value={currentPlan}
+                                    onChange={(e) => setCurrentPlan(e.target.value)}
+                                    className="flex h-9 w-full items-center rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+                                >
+                                    {plans.map((plan) => (
+                                        <option key={plan.value} value={plan.value}>
+                                            {plan.name} - {plan.badge}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button type="submit" className="mt-1 text-sm font-semibold h-10" disabled={loading}>
+                                {loading ? t.modal.submitting : t.modal.submit}
+                            </Button>
+                            <p className="text-[11px] text-muted-foreground text-center">{t.modal.instant}</p>
+                        </form>
+                    </>
+                )}
+            </div>
+        </div>
+    );
 }
 
-/* ═══════════════════════ LANDING PAGE ═══════════════════════ */
+function LandingPageContent() {
+    const locale = usePublicLocale();
+    const base = useMemo(() => getCopy(locale), [locale]);
+    const content = useMemo(() => {
+        if (locale === "en-US") {
+            return {
+                ...base,
+                faq: [
+                    {
+                        question: "How is the report personalized?",
+                        answer: "Your onboarding context shapes the niches, opportunities, warnings, recommendations, and output tone.",
+                    },
+                    {
+                        question: "What do I get with the first free report?",
+                        answer: "You create an account, complete onboarding, and receive the first delivery before any subscription billing starts.",
+                    },
+                    {
+                        question: "How do I access reports later?",
+                        answer: "Everything stays available in your dashboard, including PDFs, audio, WhatsApp copy, and the social pack.",
+                    },
+                ] as Faq[],
+                plans: [
+                    {
+                        value: "essencial",
+                        name: "Essencial",
+                        badge: "Monthly",
+                        originalPrice: "$59",
+                        discountedPrice: "$49",
+                        period: "/month",
+                        features: ["1 monthly report", "Full PDF + one-page summary", "WhatsApp copy", "AI niche mapping"],
+                    },
+                    {
+                        value: "crescimento",
+                        name: "Crescimento",
+                        badge: "Biweekly",
+                        originalPrice: "$119",
+                        discountedPrice: "$99",
+                        period: "/month",
+                        features: ["2 reports per month", "Everything in Essencial", "Audio briefing", "Operational next steps"],
+                    },
+                    {
+                        value: "profissional",
+                        name: "Profissional",
+                        badge: "Weekly",
+                        originalPrice: "$199",
+                        discountedPrice: "$169",
+                        period: "/month",
+                        features: ["4 reports per month", "Everything in Crescimento", "Complete social pack", "Higher operating cadence"],
+                        popular: true,
+                    },
+                    {
+                        value: "studio",
+                        name: "Studio",
+                        badge: "3x a week",
+                        originalPrice: "$439",
+                        discountedPrice: "$359",
+                        period: "/month",
+                        features: ["12 reports per month", "All formats included", "Up to 3 companies", "Unlimited deep dives"],
+                    },
+                ] as Plan[],
+            };
+        }
+
+        return {
+            ...base,
+            faq: [
+                {
+                    question: "Como o relatório é personalizado?",
+                    answer: "O contexto do onboarding guia nichos, oportunidades, alertas, recomendações e o tom da entrega.",
+                },
+                {
+                    question: "Como funciona o primeiro relatório grátis?",
+                    answer: "Você cria a conta, completa o onboarding e recebe a primeira entrega antes de qualquer cobrança da assinatura.",
+                },
+                {
+                    question: "Como acesso os relatórios depois?",
+                    answer: "Tudo fica disponível no seu dashboard, incluindo PDFs, áudio, copy para WhatsApp e social pack.",
+                },
+            ] as Faq[],
+            plans: [
+                {
+                    value: "essencial",
+                    name: "Essencial",
+                    badge: "Mensal",
+                    originalPrice: "R$297",
+                    discountedPrice: "R$247",
+                    period: "/mês",
+                    features: ["1 relatório mensal", "PDF completo + one-page", "Copy para WhatsApp", "Mapeamento de nichos por IA"],
+                },
+                {
+                    value: "crescimento",
+                    name: "Crescimento",
+                    badge: "Quinzenal",
+                    originalPrice: "R$597",
+                    discountedPrice: "R$497",
+                    period: "/mês",
+                    features: ["2 relatórios por mês", "Tudo do Essencial", "Áudio briefing", "Próximos passos operacionais"],
+                },
+                {
+                    value: "profissional",
+                    name: "Profissional",
+                    badge: "Semanal",
+                    originalPrice: "R$997",
+                    discountedPrice: "R$827",
+                    period: "/mês",
+                    features: ["4 relatórios por mês", "Tudo do Crescimento", "Social pack completo", "Cadência mais forte de operação"],
+                    popular: true,
+                },
+                {
+                    value: "studio",
+                    name: "Studio",
+                    badge: "3x por semana",
+                    originalPrice: "R$2.197",
+                    discountedPrice: "R$1.797",
+                    period: "/mês",
+                    features: ["12 relatórios por mês", "Todos os formatos inclusos", "Até 3 empresas", "Deep dives ilimitados"],
+                },
+            ] as Plan[],
+        };
+    }, [base, locale]);
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalPlan, setModalPlan] = useState("profissional");
+
+    function openModal(plan = "profissional") {
+        setModalPlan(plan);
+        setModalOpen(true);
+        trackEvent("modal_open", { plan, language: locale });
+    }
+
+    return (
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(234,88,12,0.10),_transparent_40%),linear-gradient(180deg,_rgba(255,247,237,0.65),_transparent_40%)]">
+            <LeadModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                selectedPlan={modalPlan}
+                locale={locale}
+                plans={content.plans}
+            />
+
+            <header className="sticky top-0 z-40 backdrop-blur border-b border-border/70 bg-background/85">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-6">
+                    <Link href="/" className="text-xl font-extrabold text-primary">Guilds</Link>
+                    <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+                        <a href="#produto" className="hover:text-foreground">{content.nav.product}</a>
+                        <a href="#formatos" className="hover:text-foreground">{content.nav.formats}</a>
+                        <a href="#planos" className="hover:text-foreground">{content.nav.plans}</a>
+                        <a href="#faq" className="hover:text-foreground">{content.nav.faq}</a>
+                    </nav>
+                    <div className="flex items-center gap-3">
+                        <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+                            <Globe2 className="h-3.5 w-3.5" />
+                            <span>{content.nav.language}</span>
+                            <Link href="/?lang=pt-BR" className={locale === "pt-BR" ? "text-primary font-medium" : ""}>PT</Link>
+                            <span>/</span>
+                            <Link href="/?lang=en-US" className={locale === "en-US" ? "text-primary font-medium" : ""}>EN</Link>
+                        </div>
+                        <Link href={`/login?lang=${encodeURIComponent(locale)}`} className={buttonVariants({ variant: "ghost" })}>
+                            {content.nav.signIn}
+                        </Link>
+                        <button onClick={() => openModal()} className={buttonVariants()}>
+                            {content.nav.start}
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <section id="produto" className="px-4 pt-20 pb-16">
+                    <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-5">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                {content.hero.eyebrow}
+                            </div>
+                            <h1 className="text-5xl sm:text-6xl font-black tracking-tight max-w-4xl leading-[0.95]">
+                                {content.hero.title}
+                            </h1>
+                            <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed">
+                                {content.hero.description}
+                            </p>
+                            <div className="mt-8 flex flex-wrap gap-3">
+                                <button onClick={() => openModal()} className={buttonVariants({ size: "lg", className: "shadow-lg shadow-primary/20" })}>
+                                    {content.hero.primary}
+                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                </button>
+                                <a href="#planos" className={buttonVariants({ size: "lg", variant: "outline" })}>
+                                    {content.hero.secondary}
+                                </a>
+                            </div>
+                            <p className="mt-4 text-sm text-muted-foreground">{content.hero.proof}</p>
+                        </div>
+
+                        <Card className="p-8 border-primary/15 shadow-xl shadow-primary/5">
+                            <div className="grid gap-4">
+                                {[
+                                    { icon: FileText, title: "PDF", body: content.formats[0] },
+                                    { icon: TrendingUp, title: "One-page", body: content.formats[1] },
+                                    { icon: MessageSquare, title: "WhatsApp", body: content.formats[2] },
+                                    { icon: Play, title: "Audio", body: content.formats[3] },
+                                    { icon: ImageIcon, title: "Social", body: content.formats[4] },
+                                ].map((item) => (
+                                    <div key={item.title} className="rounded-2xl border bg-background/70 p-4 flex items-start gap-3">
+                                        <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                            <item.icon className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold">{item.title}</p>
+                                            <p className="text-sm text-muted-foreground mt-1">{item.body}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
+                </section>
+
+                <section className="px-4 pb-16">
+                    <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-4">
+                        {content.metrics.map((metric) => (
+                            <Card key={metric.label} className="p-6">
+                                <p className="text-sm text-muted-foreground">{metric.label}</p>
+                                <p className="text-2xl font-black mt-2">{metric.value}</p>
+                            </Card>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="py-20 px-4 bg-muted/40">
+                    <div className="max-w-6xl mx-auto">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">{content.howTitle}</h2>
+                        <p className="text-muted-foreground text-center mb-12 text-lg">{content.howSubtitle}</p>
+                        <div className="grid md:grid-cols-3 gap-6">
+                            {content.how.map((item, index) => (
+                                <Card key={item.title} className="p-6">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mb-4">
+                                        {index + 1}
+                                    </div>
+                                    <h3 className="font-bold text-lg">{item.title}</h3>
+                                    <p className="text-muted-foreground text-sm mt-3 leading-relaxed">{item.body}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="formatos" className="py-20 px-4">
+                    <div className="max-w-5xl mx-auto">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">{content.formatsTitle}</h2>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {content.formats.map((format) => (
+                                <Card key={format} className="p-5 flex items-center gap-3">
+                                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                                    <p className="text-sm text-muted-foreground">{format}</p>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="planos" className="py-20 px-4 bg-muted/40">
+                    <div className="max-w-6xl mx-auto">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">{content.plansTitle}</h2>
+                        <p className="text-muted-foreground text-center mb-12 text-lg">{content.plansSubtitle}</p>
+                        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                            {content.plans.map((plan) => (
+                                <Card key={plan.value} className={`relative p-6 flex flex-col ${plan.popular ? "border-primary border-2 shadow-xl shadow-primary/10" : "border shadow-sm"}`}>
+                                    {plan.popular ? (
+                                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full">
+                                            Popular
+                                        </span>
+                                    ) : null}
+                                    <div className="mb-4">
+                                        <p className="font-bold text-lg">{plan.name}</p>
+                                        <span className="text-xs font-medium text-primary bg-primary/10 rounded-full px-2.5 py-0.5 inline-flex mt-2">
+                                            {plan.badge}
+                                        </span>
+                                    </div>
+                                    <div className="mb-4">
+                                        <span className="text-sm text-muted-foreground line-through">{plan.originalPrice}</span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-3xl font-extrabold">{plan.discountedPrice}</span>
+                                            <span className="text-muted-foreground text-sm">{plan.period}</span>
+                                        </div>
+                                    </div>
+                                    <ul className="flex-1 space-y-2.5 mb-6">
+                                        {plan.features.map((feature) => (
+                                            <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                                <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <button
+                                        onClick={() => openModal(plan.value)}
+                                        className={buttonVariants({
+                                            variant: plan.popular ? "default" : "outline",
+                                            className: "w-full",
+                                        })}
+                                    >
+                                        {content.nav.start}
+                                    </button>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="faq" className="py-20 px-4">
+                    <div className="max-w-3xl mx-auto">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">{content.faqTitle}</h2>
+                        {content.faq.map((faq) => (
+                            <FaqItem key={faq.question} faq={faq} />
+                        ))}
+                    </div>
+                </section>
+
+                <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-primary/10">
+                    <div className="max-w-xl mx-auto text-center">
+                        <h2 className="text-3xl sm:text-4xl font-bold mb-4">{content.finalTitle}</h2>
+                        <p className="text-muted-foreground mb-8 leading-relaxed">{content.finalBody}</p>
+                        <div className="flex flex-wrap justify-center gap-3">
+                            <button
+                                onClick={() => openModal()}
+                                className={buttonVariants({ size: "lg", className: "text-base font-semibold px-10 shadow-lg shadow-primary/25" })}
+                            >
+                                {content.hero.primary}
+                            </button>
+                            <Link href={`/signup?lang=${encodeURIComponent(locale)}`} className={buttonVariants({ size: "lg", variant: "outline" })}>
+                                {content.finalCta}
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <footer className="border-t border-border py-12 px-4 bg-card">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid md:grid-cols-3 gap-8 mb-8">
+                        <div>
+                            <span className="text-xl font-extrabold text-primary">Guilds</span>
+                            <p className="text-sm text-muted-foreground mt-2 max-w-xs">
+                                {content.footer.body}
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-sm mb-3">{content.footer.links}</h4>
+                            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                                <a href="#produto" className="hover:text-foreground transition-colors">{content.nav.product}</a>
+                                <a href="#formatos" className="hover:text-foreground transition-colors">{content.nav.formats}</a>
+                                <a href="#planos" className="hover:text-foreground transition-colors">{content.nav.plans}</a>
+                                <a href="#faq" className="hover:text-foreground transition-colors">{content.nav.faq}</a>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-sm mb-3">{content.footer.contact}</h4>
+                            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                                <a href="https://guilds.com.br" className="hover:text-foreground transition-colors">guilds.com.br</a>
+                                <a href="https://wa.me/5517997520867" className="hover:text-foreground transition-colors">WhatsApp</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <p className="text-xs text-muted-foreground">
+                            © 2026 Guilds. {content.footer.body}
+                        </p>
+                        <div className="flex gap-6 text-xs text-muted-foreground">
+                            <a href="#" className="hover:text-foreground transition-colors">{content.footer.privacy}</a>
+                            <a href="#" className="hover:text-foreground transition-colors">{content.footer.terms}</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    );
+}
+
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalPlan, setModalPlan] = useState("profissional");
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Track landing page view (uma vez por sessão)
-  useEffect(() => {
-    trackEvent("landing_view");
-  }, []);
-
-  function openModal(plan = "profissional") {
-    setModalPlan(plan);
-    setModalOpen(true);
-    trackEvent("modal_open", { plan });
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Lead Capture Modal */}
-      <LeadModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        selectedPlan={modalPlan}
-      />
-
-      {/* ─── 1. HEADER ─── */}
-      <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? "bg-background/95 backdrop-blur-md shadow-sm border-b border-border"
-          : "bg-transparent"
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <a href="#" className="text-xl font-extrabold tracking-tight">
-            <span className="text-primary">Guilds</span>
-          </a>
-          <nav className="hidden md:flex items-center gap-8">
-            <a
-              href="#como-funciona"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Como funciona
-            </a>
-            <a
-              href="#formatos"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Formatos
-            </a>
-            <a
-              href="#planos"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Planos
-            </a>
-            <a
-              href="#faq"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              FAQ
-            </a>
-            <button
-              onClick={() => openModal()}
-              className={buttonVariants({ size: "sm", className: "px-5" })}
-            >
-              Começar grátis →
-            </button>
-          </nav>
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenu(!mobileMenu)}
-          >
-            {mobileMenu ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-        {mobileMenu && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden bg-background border-b border-border px-4 pb-4 flex flex-col gap-3"
-          >
-            <a href="#como-funciona" className="text-sm py-2" onClick={() => setMobileMenu(false)}>Como funciona</a>
-            <a href="#formatos" className="text-sm py-2" onClick={() => setMobileMenu(false)}>Formatos</a>
-            <a href="#planos" className="text-sm py-2" onClick={() => setMobileMenu(false)}>Planos</a>
-            <a href="#faq" className="text-sm py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
-            <button
-              onClick={() => { setMobileMenu(false); openModal(); }}
-              className={buttonVariants({ size: "sm" })}
-            >
-              Começar grátis →
-            </button>
-          </motion.div>
-        )}
-      </header>
-
-      {/* ─── 2. HERO ─── */}
-      <Section className="pt-28 pb-20 md:pt-36 md:pb-28 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6"
-          >
-            <Sparkles className="h-4 w-4" />
-            Exclusivo para membros do grupo
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6"
-          >
-            Seu mercado muda todo dia.
-            <br />
-            <span className="text-primary">Você acompanha?</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
-          >
-            Relatórios de inteligência de mercado personalizados para o{" "}
-            <strong>seu</strong> setor — entregues na frequência que sua empresa
-            precisa: <strong>do diário ao mensal</strong>. Insights prontos
-            para ação em PDF, áudio curto, resumos via WhatsApp e posts de social media.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <button
-              onClick={() => openModal()}
-              className={buttonVariants({ size: "lg", className: "text-base font-semibold px-8 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all" })}
-            >
-              Começar com 1 relatório grátis
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </button>
-            <a
-              href="#como-funciona"
-              className={buttonVariants({ variant: "outline", size: "lg", className: "text-base border-2" })}
-            >
-              Como funciona
-            </a>
-          </motion.div>
-        </div>
-      </Section>
-
-      {/* ─── 3. DOR / PROBLEMA ─── */}
-      <Section className="py-20 px-4 bg-muted/50" id="problema">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
-            Você sabe que deveria acompanhar o mercado.
-          </h2>
-          <p className="text-xl text-muted-foreground text-center mb-12">
-            Mas quando foi a última vez que fez isso de verdade?
-          </p>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Target,
-                title: "Decisões no escuro",
-                desc: "Você toma decisões importantes sem visibilidade real do que está acontecendo no mercado.",
-                gradient: "from-blue-500/10 to-indigo-500/10",
-              },
-              {
-                icon: TrendingUp,
-                title: "Concorrentes na frente",
-                desc: "Enquanto você foca na operação, seu concorrente já viu a tendência e se posicionou.",
-                gradient: "from-violet-500/10 to-purple-500/10",
-              },
-              {
-                icon: Zap,
-                title: "Sem tempo nem equipe",
-                desc: "Você sabe que deveria pesquisar, mas não tem tempo nem gente sobrando para isso.",
-                gradient: "from-amber-500/10 to-orange-500/10",
-              },
-            ].map((item, i) => (
-              <Card
-                key={i}
-                className={`p-6 bg-gradient-to-br ${item.gradient} border shadow-md hover:shadow-lg transition-all hover:-translate-y-1`}
-              >
-                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <item.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {item.desc}
-                </p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 4. COMO FUNCIONA ─── */}
-      <Section className="py-20 px-4" id="como-funciona">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
-            Como funciona
-          </h2>
-          <p className="text-muted-foreground text-center mb-14 text-lg">
-            De perfil preenchido a relatório entregue — em 4 passos.
-          </p>
-          <div className="grid md:grid-cols-4 gap-8">
-            {[
-              {
-                step: "01",
-                title: "Perfil",
-                desc: "Preencha o perfil da sua empresa: setor, produtos, objetivos e dores.",
-              },
-              {
-                step: "02",
-                title: "Mapeamento",
-                desc: "Mapeamos os nichos de mercado, concorrentes e fontes mais relevantes para o seu negócio.",
-              },
-              {
-                step: "03",
-                title: "Pesquisa",
-                desc: "Monitoramos continuamente notícias, tendências e movimentações estratégicas do seu setor.",
-              },
-              {
-                step: "04",
-                title: "Entrega",
-                desc: "Relatório personalizado entregue na frequência do seu plano.",
-              },
-            ].map((item, i) => (
-              <div key={i} className="text-center relative">
-                {i < 3 && (
-                  <div className="hidden md:block absolute top-7 left-[60%] w-[80%] h-px bg-border" />
-                )}
-                <div className="w-14 h-14 rounded-2xl bg-primary text-primary-foreground font-bold text-xl flex items-center justify-center mx-auto mb-4 relative z-10">
-                  {item.step}
-                </div>
-                <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 5. FORMATOS DE ENTREGA ─── */}
-      <Section className="py-20 px-4 bg-muted/50" id="formatos">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
-            5 formatos. A mesma visão estratégica.
-          </h2>
-          <p className="text-muted-foreground text-center mb-14 text-lg">
-            Acesse as análises do seu mercado como e onde preferir.
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {[
-              {
-                icon: FileText,
-                title: "PDF Completo",
-                desc: "Relatório aprofundado com análise de tendências, oportunidades e alertas.",
-                highlight: false,
-              },
-              {
-                icon: FileText,
-                title: "PDF One Page",
-                desc: "Versão executiva de 1 página para compartilhar com o time.",
-                highlight: false,
-              },
-              {
-                icon: Play,
-                title: "Áudio MP3",
-                desc: "Ouça direto na plataforma ou baixe. Briefing narrado de ~10 min.",
-                highlight: true,
-              },
-              {
-                icon: MessageSquare,
-                title: "WhatsApp",
-                desc: "Texto pronto para enviar para o time ou usar em reuniões.",
-                highlight: false,
-              },
-              {
-                icon: ImageIcon,
-                title: "Social Media",
-                desc: "8 cards + stories + copy prontos para Instagram e LinkedIn.",
-                highlight: false,
-              },
-            ].map((item, i) => (
-              <Card
-                key={i}
-                className={`p-5 border shadow-md hover:shadow-lg transition-all hover:-translate-y-1 ${item.highlight ? "bg-primary/5 border-primary/30" : "bg-background"}`}
-              >
-                <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 ${item.highlight ? "bg-primary/15" : "bg-muted"}`}>
-                  <item.icon className={`h-5 w-5 ${item.highlight ? "text-primary" : "text-muted-foreground"}`} />
-                </div>
-                <h3 className="font-bold text-sm mb-1">{item.title}</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  {item.desc}
-                </p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 6. DIFERENCIAL ─── */}
-      <Section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-            Não é genérico. É <span className="text-primary">seu</span>.
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
-            O relatório de uma HealthTech é completamente diferente do de uma
-            agência de marketing. Cada insight é personalizado para o seu
-            setor, seus produtos e suas dores.
-          </p>
-          <div className="grid sm:grid-cols-3 gap-6 text-left">
-            {[
-              {
-                icon: Target,
-                title: "Mapeamento cirúrgico",
-                desc: "Identificamos com precisão os nichos exatos que importam para o seu negócio.",
-              },
-              {
-                icon: Shield,
-                title: "Alertas de mercado",
-                desc: "Saiba antes da concorrência quando algo relevante muda no seu setor.",
-              },
-              {
-                icon: Star,
-                title: "Recomendações acionáveis",
-                desc: "Não só tendências — recomendações concretas de como agir.",
-              },
-            ].map((item, i) => (
-              <Card key={i} className="p-6 border shadow-sm hover:shadow-md transition-all">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                  <item.icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-bold mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {item.desc}
-                </p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 7. OFERTA DO GRUPO ─── */}
-      <Section className="py-16 px-4 bg-primary text-primary-foreground">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-sm uppercase tracking-widest opacity-80 mb-3">
-            Oferta exclusiva
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-            Primeiro relatório grátis + desconto permanente
-          </h2>
-          <p className="text-lg opacity-90 max-w-xl mx-auto mb-8 leading-relaxed">
-            Como membro do grupo, você recebe o primeiro relatório sem custo e
-            garante desconto exclusivo enquanto mantiver a assinatura.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center text-sm font-medium">
-            {["🎁 1º relatório grátis", "💰 Desconto de grupo", "🔒 Cancele quando quiser"].map((t, i) => (
-              <span key={i} className="bg-white/15 backdrop-blur-sm rounded-full px-5 py-2.5">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 8. PLANOS E PREÇOS ─── */}
-      <Section className="py-20 px-4" id="planos">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
-            Planos com desconto exclusivo
-          </h2>
-          <p className="text-muted-foreground text-center mb-12 text-lg">
-            Preços especiais para membros do grupo. Permanentes.
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {plans.map((plan, i) => (
-              <Card
-                key={i}
-                className={`relative p-6 flex flex-col overflow-visible ${plan.popular
-                  ? "border-primary border-2 shadow-xl shadow-primary/10 scale-[1.02]"
-                  : "border shadow-md"
-                  }`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
-                    MAIS ESCOLHIDO
-                  </span>
-                )}
-                <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
-                <span className="text-xs font-medium text-primary bg-primary/10 rounded-full px-2.5 py-0.5 w-fit mb-3">
-                  {plan.frequency}
-                </span>
-                <div className="mb-4">
-                  <span className="text-sm text-muted-foreground line-through">
-                    {plan.priceOriginal}
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold">
-                      {plan.priceDiscount}
-                    </span>
-                    <span className="text-muted-foreground text-sm">
-                      {plan.period}
-                    </span>
-                  </div>
-                </div>
-                <ul className="flex-1 space-y-2.5 mb-6">
-                  {plan.features.map((f, j) => (
-                    <li
-                      key={j}
-                      className="flex items-start gap-2 text-sm text-muted-foreground"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => openModal(plan.value)}
-                  className={buttonVariants({
-                    variant: plan.popular ? "default" : "outline",
-                    className: `w-full ${plan.popular ? "shadow-md" : ""}`,
-                  })}
-                >
-                  Começar grátis
-                </button>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 9. PROVA SOCIAL ─── */}
-      <Section className="py-20 px-4 bg-muted/50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-12">
-            Feito por quem você já conhece
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6 text-left">
-            {[
-              {
-                quote:
-                  "Finalmente consigo acompanhar o que está acontecendo no meu setor sem gastar horas pesquisando.",
-                name: "Carlos M.",
-                role: "CEO, TechFarma",
-              },
-              {
-                quote:
-                  "O pack de social media sozinho já vale o plano. Saem 8 posts prontos toda semana.",
-                name: "Ana P.",
-                role: "Diretora de Marketing",
-              },
-              {
-                quote:
-                  "O áudio no carro virou rotina. Informação que importa, sem enrolação — ouço direto na plataforma.",
-                name: "Roberto S.",
-                role: "Sócio-fundador",
-              },
-            ].map((t, i) => (
-              <Card
-                key={i}
-                className="p-6 bg-background border shadow-md flex flex-col"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star
-                      key={j}
-                      className="h-4 w-4 fill-amber-400 text-amber-400"
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed italic flex-1">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="mt-auto">
-                  <p className="font-bold text-sm">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ─── 10. FAQ ─── */}
-      <Section className="py-20 px-4" id="faq">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
-            Perguntas frequentes
-          </h2>
-          {faqs.map((faq, i) => (
-            <FaqItem key={i} question={faq.question} answer={faq.answer} />
-          ))}
-        </div>
-      </Section>
-
-      {/* ─── 11. CTA FINAL ─── */}
-      <Section
-        className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-primary/10"
-        id="comecar"
-      >
-        <div className="max-w-xl mx-auto text-center flex flex-col items-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Vagas limitadas para o grupo.
-          </h2>
-          <p className="text-muted-foreground mb-8 leading-relaxed max-w-md">
-            Membros que entrarem agora garantem o desconto permanente e acesso
-            prioritário a todos os novos formatos.
-          </p>
-          <button
-            onClick={() => openModal()}
-            className={buttonVariants({ size: "lg", className: "text-base font-semibold px-10 shadow-lg shadow-primary/25" })}
-          >
-            Começar com 1 relatório grátis
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </button>
-          <p className="text-xs text-muted-foreground mt-4">
-            Sem cartão necessário · Só cobrado a partir do 2º mês
-          </p>
-        </div>
-      </Section>
-
-      {/* ─── 12. FOOTER ─── */}
-      <footer className="border-t border-border py-12 px-4 bg-card">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <span className="text-xl font-extrabold">
-                <span className="text-primary">Guilds</span>
-              </span>
-              <p className="text-sm text-muted-foreground mt-2 max-w-xs">
-                Inteligência de mercado e relatórios estratégicos entregues
-                na frequência que a sua empresa precisar.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-3">Links rápidos</h4>
-              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <a href="#como-funciona" className="hover:text-foreground transition-colors">Como funciona</a>
-                <a href="#formatos" className="hover:text-foreground transition-colors">Formatos</a>
-                <a href="#planos" className="hover:text-foreground transition-colors">Planos e preços</a>
-                <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-3">Contato</h4>
-              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <a href="https://guilds.com.br" className="hover:text-foreground transition-colors">guilds.com.br</a>
-                <a href="https://wa.me/5511999999999" className="hover:text-foreground transition-colors flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5" />
-                  WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-muted-foreground">
-              © 2026 Guilds. Todos os direitos reservados. Feito por{" "}
-              <a href="https://guilds.com.br" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-foreground">
-                Guilds
-              </a>.
-            </p>
-            <div className="flex gap-6 text-xs text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Política de Privacidade</a>
-              <a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* ─── WhatsApp Float Button ─── */}
-      <a
-        href="https://wa.me/5517997520867?text=Oi%20Gustavo!%20Vi%20o%20Intelligence%20Engine%20e%20quero%20saber%20mais."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20BD5A] text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110"
-        aria-label="Falar pelo WhatsApp"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-        </svg>
-      </a>
-    </div>
-  );
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+            <LandingPageContent />
+        </Suspense>
+    );
 }

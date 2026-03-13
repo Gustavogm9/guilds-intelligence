@@ -1,20 +1,18 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-    LayoutDashboard,
+    Bell,
+    Crosshair,
     FileText,
+    LayoutDashboard,
+    LogOut,
+    Settings,
     Sparkles,
     User,
-    LogOut,
 } from "lucide-react";
-import Link from "next/link";
 
-const clientLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/reports", label: "Meus Relatórios", icon: FileText },
-    { href: "/dashboard/deep-dive", label: "Deep Dive", icon: Sparkles },
-    { href: "/dashboard/profile", label: "Meu Perfil", icon: User },
-];
+import { createClient } from "@/lib/supabase/server";
+import { getDictionary } from "@/lib/i18n";
 
 export default async function DashboardLayout({
     children,
@@ -34,15 +32,31 @@ export default async function DashboardLayout({
         .eq("id", user.id)
         .single();
 
-    // Admin não acessa /dashboard, redireciona para /admin
     if (profile?.role === "admin") redirect("/admin");
+
+    const { data: client } = await supabase
+        .from("clients")
+        .select("preferred_language")
+        .eq("user_id", user.id)
+        .single();
+
+    const t = getDictionary(client?.preferred_language);
+    const clientLinks = [
+        { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
+        { href: "/dashboard/inbox", label: t.inbox, icon: Bell },
+        { href: "/dashboard/reports", label: t.reports, icon: FileText },
+        { href: "/dashboard/deep-dive", label: t.deepDive, icon: Sparkles },
+        { href: "/dashboard/niches", label: t.myNiches, icon: Crosshair },
+        { href: "/dashboard/settings", label: t.settings, icon: Settings },
+        { href: "/dashboard/profile", label: t.profile, icon: User },
+    ];
 
     return (
         <div className="min-h-screen flex">
             <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
                 <div className="p-6 border-b border-border">
                     <Link href="/dashboard" className="text-xl font-extrabold">
-                        <span className="text-primary">Guilds</span>
+                        <span className="text-primary">{t.appName}</span>
                     </Link>
                 </div>
                 <nav className="flex-1 p-4 space-y-1">
@@ -64,7 +78,7 @@ export default async function DashboardLayout({
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">
-                                {profile?.full_name || "Usuário"}
+                                {profile?.full_name || t.userFallback}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                                 {user.email}
@@ -77,7 +91,7 @@ export default async function DashboardLayout({
                             className="flex items-center gap-2 px-3 py-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted mt-1"
                         >
                             <LogOut className="h-4 w-4" />
-                            Sair
+                            {t.logout}
                         </button>
                     </form>
                 </div>
