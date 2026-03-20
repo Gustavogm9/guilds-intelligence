@@ -58,6 +58,8 @@ type Topic = {
     normalized_key: string;
 };
 
+import { NicheTrendAnalytics, RadarData, LineData } from "./niche-trend-analytics";
+
 type HubTranslations = {
     nichesTitle: string;
     nichePrimary: string;
@@ -112,12 +114,16 @@ export default function NicheIntelligenceHub({
     niche,
     signals,
     topics,
+    radarData,
+    lineData,
     lang,
     t,
 }: {
     niche: Niche;
-    signals: Signal[];
+    signals: any[]; // using any to avoid strict supabase type mismatch on nested objects
     topics: Topic[];
+    radarData: RadarData[];
+    lineData: LineData[];
     lang: string;
     t: HubTranslations;
 }) {
@@ -248,6 +254,9 @@ export default function NicheIntelligenceHub({
                     <p className="text-2xl font-bold">{regionBreakdown.length}</p>
                 </Card>
             </div>
+
+            {/* Visual Analytics */}
+            <NicheTrendAnalytics radarData={radarData} lineData={lineData} isPt={isPt} />
 
             {/* Region Breakdown + Filters */}
             <div className="flex flex-wrap items-center gap-2 mb-6">

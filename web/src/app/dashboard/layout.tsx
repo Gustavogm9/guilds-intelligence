@@ -40,6 +40,12 @@ export default async function DashboardLayout({
         .eq("user_id", user.id)
         .single();
 
+    const { count: unreadCount } = await supabase
+        .from("user_notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false);
+
     const t = getDictionary(client?.preferred_language);
     const clientLinks = [
         { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
@@ -60,16 +66,28 @@ export default async function DashboardLayout({
                     </Link>
                 </div>
                 <nav className="flex-1 p-4 space-y-1">
-                    {clientLinks.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        >
-                            <link.icon className="h-4 w-4" />
-                            {link.label}
-                        </Link>
-                    ))}
+                    {clientLinks.map((link) => {
+                        const isInbox = link.href === "/dashboard/inbox";
+                        const showBadge = isInbox && unreadCount && unreadCount > 0;
+                        
+                        return (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <link.icon className="h-4 w-4" />
+                                    {link.label}
+                                </div>
+                                {showBadge ? (
+                                    <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                        {unreadCount}
+                                    </span>
+                                ) : null}
+                            </Link>
+                        );
+                    })}
                 </nav>
                 <div className="p-4 border-t border-border">
                     <div className="flex items-center gap-3 px-3 py-2">

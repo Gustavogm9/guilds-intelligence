@@ -2,24 +2,16 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-    Calendar,
-    Clock,
-    Loader2,
-    Rocket,
-    Save,
-    CheckCircle2,
-    ArrowUpRight,
-    Sparkles,
-} from "lucide-react";
+import { ExternalLink, Info, Loader2, Save, Rocket, Calendar, Clock, Lock, Sparkles, ArrowUpRight, CheckCircle2 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { trackEvent } from "@/lib/tracking";
 import { getDictionary } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { VisualScheduler } from "./visual-scheduler";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -152,6 +144,7 @@ export default function SettingsPage() {
     }, []);
 
     const t = getDictionary(preferredLanguage);
+    const isPt = preferredLanguage.startsWith("pt");
     const limitReached = quota.used >= quota.limit;
     const isFirstFree = !quota.hasAnyReport;
 
@@ -228,13 +221,6 @@ export default function SettingsPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold">{t.settingsTitle}</h1>
-                <p className="text-muted-foreground mt-1">
-                    {t.settingsDescription}
-                </p>
-            </div>
-
             {/* Generate Report Now */}
             <Card className="p-6 border-primary/20 bg-primary/5" id="generate">
                 <div className="flex items-center gap-3 mb-4">
@@ -348,7 +334,7 @@ export default function SettingsPage() {
                             onValueChange={(value) =>
                                 setSchedule((prev) => ({
                                     ...prev,
-                                    scheduler_timezone: value,
+                                    scheduler_timezone: value as string,
                                 }))
                             }
                         >
@@ -365,108 +351,20 @@ export default function SettingsPage() {
                         </Select>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5" />
-                            {t.scheduleWindowStart}
-                        </Label>
-                        <Select
-                            value={String(schedule.scheduler_window_start_hour)}
-                            onValueChange={(value) =>
-                                setSchedule((prev) => ({
-                                    ...prev,
-                                    scheduler_window_start_hour: Number(value),
-                                }))
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => (
-                                    <SelectItem key={i} value={String(i)}>
-                                        {String(i).padStart(2, "0")}:00
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5" />
-                            {t.scheduleWindowEnd}
-                        </Label>
-                        <Select
-                            value={String(schedule.scheduler_window_end_hour)}
-                            onValueChange={(value) =>
-                                setSchedule((prev) => ({
-                                    ...prev,
-                                    scheduler_window_end_hour: Number(value),
-                                }))
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => (
-                                    <SelectItem key={i} value={String(i)}>
-                                        {String(i).padStart(2, "0")}:00
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                        <Label htmlFor="business-days">
-                            {t.scheduleBusinessDaysOnly}
-                        </Label>
-                        <Switch
-                            id="business-days"
-                            checked={schedule.scheduler_business_days_only}
-                            onCheckedChange={(checked: boolean) =>
-                                setSchedule((prev) => ({
-                                    ...prev,
-                                    scheduler_business_days_only: checked,
-                                }))
-                            }
+                    <div className="md:col-span-2">
+                        <VisualScheduler
+                            schedule={schedule}
+                            setSchedule={setSchedule}
+                            isPt={isPt}
                         />
                     </div>
+                </div>
 
-                    <div className="space-y-2">
-                        <Label>{t.schedulePreferredWeekday}</Label>
-                        <Select
-                            value={
-                                schedule.scheduler_preferred_weekday !== null
-                                    ? String(schedule.scheduler_preferred_weekday)
-                                    : "none"
-                            }
-                            onValueChange={(value) =>
-                                setSchedule((prev) => ({
-                                    ...prev,
-                                    scheduler_preferred_weekday:
-                                        value === "none" ? null : Number(value),
-                                }))
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">
-                                    {t.weekdays.none}
-                                </SelectItem>
-                                {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-                                    <SelectItem key={day} value={String(day)}>
-                                        {t.weekdays[String(day)]}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
+                <div className="w-full mt-8 border-t pt-6">
+                    <h3 className="text-sm font-medium mb-4">
+                        {isPt ? "Configurações Avançadas de Agendamento (Mensal)" : "Advanced Scheduling (Monthly)"}
+                    </h3>
+                    
                     <div className="space-y-2">
                         <Label>{t.schedulePreferredDayOfMonth}</Label>
                         <Input

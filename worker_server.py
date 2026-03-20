@@ -147,7 +147,13 @@ def _extract_niches_claude(payload: AnalyzeNichesRequest) -> list[dict] | None:
     if not api_key or not Anthropic:
         return None
 
-    is_en = payload.preferred_language.startswith("en")
+    lang_map = {
+        "pt-BR": "Portuguese",
+        "en-US": "English",
+        "es-ES": "Spanish",
+        "fr-FR": "French"
+    }
+    target_lang = lang_map.get(payload.preferred_language, "Portuguese")
 
     prompt = f"""You are a B2B market intelligence analyst. Given the following client profile, identify 5-7 strategic market niches that should be monitored to generate valuable intelligence reports for this client.
 
@@ -183,7 +189,7 @@ Rules:
 3. Include both direct niches (their industry) and adjacent niches (related markets that affect them)
 4. Always include at least one macro-trend niche (e.g., "IA", "Sustainability", "Digital Transformation")
 5. Classify relevance as "primary" (core to their business) or "secondary" (adjacent/contextual)
-6. Provide a brief reasoning (1 sentence) for each niche in {"English" if is_en else "Portuguese"}
+6. Provide a brief reasoning (1 sentence) for each niche in {target_lang}
 
 Return ONLY a valid JSON array, no other text:
 [{{"name": "Niche Name", "relevance": "primary|secondary", "reasoning": "Brief explanation"}}]"""

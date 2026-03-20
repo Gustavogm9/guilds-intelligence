@@ -33,13 +33,17 @@ def get_client_locale(client: dict) -> str:
         or client.get("preferred_language")
         or "pt-BR"
     )
-    return "en-US" if str(idioma).lower().startswith("en") else "pt-BR"
+    idioma_str = str(idioma).lower()
+    if idioma_str.startswith("en"): return "en-US"
+    if idioma_str.startswith("es"): return "es-ES"
+    if idioma_str.startswith("fr"): return "fr-FR"
+    return "pt-BR"
 
 def is_english_client(client: dict) -> bool:
     return get_client_locale(client) == "en-US"
 
 def tr(client: dict, pt: str, en: str) -> str:
-    return en if is_english_client(client) else pt
+    return pt if get_client_locale(client) == "pt-BR" else en
 
 def build_social_copy(client: dict) -> dict[str, str]:
     return {

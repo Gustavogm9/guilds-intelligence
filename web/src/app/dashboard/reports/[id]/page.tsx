@@ -14,6 +14,7 @@ import { TrackedAudioPlayer } from "@/components/tracking/tracked-audio-player";
 import { RegenerateFreeBanner } from "@/components/dashboard/regenerate-free-banner";
 import { DeepDiveChat } from "@/components/dashboard/deep-dive-chat";
 import { ContentGenerator } from "@/components/dashboard/content-generator";
+import { ShareReportButton } from "@/components/dashboard/share-report-button";
 import { formatDate, getDictionary } from "@/lib/i18n";
 
 type ReportClient = {
@@ -236,6 +237,11 @@ export default async function ReportDetailPage({
                         )}
                     </div>
                 </div>
+                {report.status === "done" && (
+                    <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                        <ShareReportButton reportId={report.id} />
+                    </div>
+                )}
             </div>
 
             {profile?.role === "admin" && query.review === "success" ? (

@@ -229,6 +229,54 @@ CREATE TABLE public.report_files (
 );
 
 -- ============================================================
+-- TABELA: shared_reports
+-- Links públicos gerados para relatórios (Fase 6.1)
+-- ============================================================
+
+CREATE TABLE public.shared_reports (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  report_id   UUID NOT NULL REFERENCES public.reports(id) ON DELETE CASCADE,
+  token       TEXT NOT NULL UNIQUE,
+  expires_at  TIMESTAMP WITH TIME ZONE,
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  created_by  UUID REFERENCES auth.users(id) ON DELETE SET NULL
+);
+
+-- Tabela de Notificações In-App
+CREATE TABLE IF NOT EXISTS public.user_notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    action_url TEXT,
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ============================================================
+-- TABELA: niche_intelligence_nodes
+-- Armazena os hubs globais de inteligência
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.niche_intelligence_nodes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    topic_id UUID NOT NULL,
+    title TEXT NOT NULL,
+    url TEXT,
+    summary TEXT,
+    source_name TEXT,
+    region TEXT DEFAULT 'GLOBAL',
+    language TEXT DEFAULT 'en',
+    predictive_score INTEGER DEFAULT 50,
+    is_trend BOOLEAN DEFAULT FALSE,
+    theme TEXT,
+    matched_keywords TEXT[],
+    published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
 -- TABELA: billing_log
 -- Eventos de geração para controle de cobrança
 -- ============================================================
@@ -317,6 +365,8 @@ ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_niches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.report_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shared_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deep_dive_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.billing_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.portfolio_products ENABLE ROW LEVEL SECURITY;
@@ -332,11 +382,56 @@ $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 -- Helper: pegar client_id do usuário logado
 CREATE OR REPLACE FUNCTION public.my_client_id()
-RETURNS UUID AS $$
-  SELECT id FROM public.clients
-  WHERE user_id = auth.uid()
-  LIMIT 1;
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+RETURNS UUID
+LANGUAGE sql STABLE
+SECURITY DEFINER
+AS $$
+  SELECT id FROM public.clients WHERE user_id = auth.uid() LIMIT 1;
+$$;
+
+-- Funções Trend Radar
+CREATE OR REPLACE FUNCTION public.get_client_niche_radar_data(p_client_niche_id UUID)
+RETURNS TABLE (
+    theme TEXT,
+    avg_score NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        COALESCE(n.theme, 'Geral'),
+        ROUND(AVG(n.predictive_score), 2)
+    FROM public.niche_intelligence_nodes n
+    JOIN public.client_niche_topic_map m ON m.topic_id = n.topic_id
+    WHERE m.client_niche_id = p_client_niche_id
+    GROUP BY COALESCE(n.theme, 'Geral')
+    ORDER BY avg_score DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_client_niche_line_data(p_client_niche_id UUID)
+RETURNS TABLE (
+    period DATE,
+    avg_score NUMERIC
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        DATE(date_trunc('week', COALESCE(n.published_at, n.created_at))),
+        ROUND(AVG(n.predictive_score), 2)
+    FROM public.niche_intelligence_nodes n
+    JOIN public.client_niche_topic_map m ON m.topic_id = n.topic_id
+    WHERE m.client_niche_id = p_client_niche_id
+    GROUP BY DATE(date_trunc('week', COALESCE(n.published_at, n.created_at)))
+    ORDER BY DATE(date_trunc('week', COALESCE(n.published_at, n.created_at))) ASC
+    LIMIT 12;
+END;
+$$;
 
 -- ---- profiles ----
 CREATE POLICY "Usuário vê apenas seu próprio perfil"
@@ -411,6 +506,34 @@ CREATE POLICY "Cliente vê arquivos de seus relatórios"
     )
   );
 
+-- ---- shared_reports ----
+CREATE POLICY "Users can manage own shared reports"
+  ON public.shared_reports FOR ALL
+  USING (
+    auth.uid() = created_by OR
+    public.is_admin()
+  )
+  WITH CHECK (
+    auth.uid() = created_by OR
+    public.is_admin()
+  );
+
+CREATE POLICY "Anon can select shared report by token"
+  ON public.shared_reports FOR SELECT
+  USING (
+    (expires_at IS NULL OR expires_at > timezone('utc'::text, now()))
+  );
+
+-- ---- user_notifications ----
+CREATE POLICY "Users can view own notifications"
+    ON public.user_notifications FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notifications"
+    ON public.user_notifications FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
 -- ---- deep_dive_requests ----
 CREATE POLICY "Admin gerencia deep dives"
   ON public.deep_dive_requests FOR ALL
@@ -462,6 +585,10 @@ CREATE INDEX idx_reports_client_id ON public.reports(client_id);
 CREATE INDEX idx_reports_status ON public.reports(status);
 CREATE INDEX idx_reports_created_at ON public.reports(created_at DESC);
 CREATE INDEX idx_report_files_report_id ON public.report_files(report_id);
+CREATE INDEX IF NOT EXISTS idx_shared_reports_token ON public.shared_reports(token);
+CREATE INDEX IF NOT EXISTS idx_shared_reports_expires_at ON public.shared_reports(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id ON public.user_notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_is_read ON public.user_notifications(is_read);
 CREATE INDEX idx_billing_log_client_month ON public.billing_log(client_id, billing_month);
 CREATE INDEX idx_deep_dives_client_id ON public.deep_dive_requests(client_id);
 CREATE INDEX idx_deep_dives_status ON public.deep_dive_requests(status);

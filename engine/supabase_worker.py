@@ -37,8 +37,9 @@ def get_client_locale(client: dict[str, Any] | None) -> str:
         or "pt-BR"
     )
     normalized = str(language).lower()
-    if normalized.startswith("en"):
-        return "en-US"
+    if normalized.startswith("en"): return "en-US"
+    if normalized.startswith("es"): return "es-ES"
+    if normalized.startswith("fr"): return "fr-FR"
     return "pt-BR"
 
 

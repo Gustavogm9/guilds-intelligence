@@ -62,6 +62,10 @@ def get_client_locale(client: dict) -> str:
     normalizado = str(idioma).lower()
     if normalizado.startswith("en"):
         return "en-US"
+    if normalizado.startswith("es"):
+        return "es-ES"
+    if normalizado.startswith("fr"):
+        return "fr-FR"
     return "pt-BR"
 
 
@@ -70,7 +74,7 @@ def is_english_client(client: dict) -> bool:
 
 
 def tr(client: dict, pt_text: str, en_text: str) -> str:
-    return en_text if is_english_client(client) else pt_text
+    return pt_text if get_client_locale(client) == "pt-BR" else en_text
 
 
 def audio_language_code(client: dict) -> str:

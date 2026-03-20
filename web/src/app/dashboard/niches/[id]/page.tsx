@@ -74,6 +74,12 @@ export default async function NicheDetailPage({
             )
         `)
         .eq("client_niche_id", id);
+        
+    // Fetch analytics for radar
+    const [ { data: radarData }, { data: lineData } ] = await Promise.all([
+        supabase.rpc("get_client_niche_radar_data", { p_client_niche_id: id }),
+        supabase.rpc("get_client_niche_line_data", { p_client_niche_id: id })
+    ]);
 
     const t = getDictionary(client?.preferred_language);
 
@@ -82,6 +88,8 @@ export default async function NicheDetailPage({
             niche={niche}
             signals={signals || []}
             topics={(topicMap || []).map((m: any) => m.global_niche_topics).filter(Boolean)}
+            radarData={radarData || []}
+            lineData={lineData || []}
             lang={client?.preferred_language || "pt-BR"}
             t={{
                 nichesTitle: t.nichesTitle,

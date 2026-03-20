@@ -1,20 +1,22 @@
 import Link from "next/link";
-import { Bell, FileText, Sparkles } from "lucide-react";
+import { Bell, FileText, Sparkles, AlertCircle } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventTracker } from "@/components/tracking/event-tracker";
+import { MarkNotificationsRead } from "@/components/dashboard/mark-notifications-read";
 import { formatDateTime, getDictionary } from "@/lib/i18n";
 
 type InboxItem = {
     id: string;
-    type: "report_ready" | "report_processing" | "deep_dive_update" | "whatsapp_message";
+    type: "report_ready" | "report_processing" | "deep_dive_update" | "whatsapp_message" | "notification";
     title: string;
     description: string;
     createdAt: string;
     href: string;
     badge: string;
+    isUnread?: boolean;
 };
 
 function sortByDate(items: InboxItem[]) {
@@ -35,7 +37,7 @@ export default async function DashboardInboxPage() {
 
     const t = getDictionary(client?.preferred_language);
 
-    const [{ data: reports }, { data: deepDives }, whatsappRes] = client
+    const [{ data: reports }, { data: deepDives }, whatsappRes, { data: notifications }] = client
         ? await Promise.all([
             supabase
                 .from("reports")
@@ -55,8 +57,14 @@ export default async function DashboardInboxPage() {
                 .eq("client_id", client.id)
                 .order("created_at", { ascending: false })
                 .limit(10),
+            supabase
+                .from("user_notifications")
+                .select("id, type, title, content, action_url, is_read, created_at")
+                .eq("user_id", user!.id)
+                .order("created_at", { ascending: false })
+                .limit(10)
         ])
-        : [{ data: [] }, { data: [] }, { data: [] }];
+        : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
 
     const reportItems: InboxItem[] = (reports || []).map((report: Record<string, unknown>) => {
         const done = report.status === "done";
@@ -98,11 +106,25 @@ export default async function DashboardInboxPage() {
         badge: t.locale === "en-US" ? "WhatsApp" : "WhatsApp",
     }));
 
-    const inboxItems = sortByDate([...reportItems, ...deepDiveItems, ...whatsappItems]).slice(0, 20);
+    const notifItems: InboxItem[] = (notifications || []).map((item) => ({
+        id: String(item.id),
+        type: "notification",
+        title: String(item.title),
+        description: String(item.content || ""),
+        createdAt: String(item.created_at),
+        href: item.action_url ? String(item.action_url) : "#",
+        badge: "Novo",
+        isUnread: !item.is_read
+    }));
+
+    // Evitar duplicação visual de "reports prontos" já cobertos pelas notificações 
+    // ou apenas misturar e deixar ordenado. Para fins de simplicidade, vamos misturar tudo.
+    const inboxItems = sortByDate([...reportItems, ...deepDiveItems, ...whatsappItems, ...notifItems]).slice(0, 30);
 
     return (
         <div className="space-y-8">
             <EventTracker eventType="inbox_view" metadata={{ items_count: inboxItems.length }} />
+            <MarkNotificationsRead />
 
             <div>
                 <h1 className="text-3xl font-bold">{t.inboxTitle}</h1>
@@ -131,11 +153,13 @@ export default async function DashboardInboxPage() {
                         <Card key={`${item.type}-${item.id}`} className="p-5">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="mt-0.5 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                                    <div className={`mt-0.5 h-10 w-10 rounded-lg flex items-center justify-center ${item.isUnread ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
                                         {item.type === "deep_dive_update" ? (
-                                            <Sparkles className="h-5 w-5 text-primary" />
+                                            <Sparkles className="h-5 w-5" />
+                                        ) : item.type === "notification" ? (
+                                            <AlertCircle className="h-5 w-5" />
                                         ) : (
-                                            <FileText className="h-5 w-5 text-primary" />
+                                            <FileText className="h-5 w-5" />
                                         )}
                                     </div>
                                     <div>
